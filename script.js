@@ -1,7 +1,7 @@
 // Firebase Imports (MUST use cdn links provided by the environment)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, onSnapshot, updateDoc, arrayUnion, getDoc, arrayRemove } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // Global Variables
@@ -9,76 +9,269 @@ let db;
 let auth;
 let userId = null;
 let isAuthReady = false;
-let timetableData = {}; // Will hold the content of timetable.json
-let currentCatchphrases = [];
-
-// Constants for Schedule Dropdowns
-const SCHEDULE_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
-const SCHEDULE_WEEKS = ["Week 1", "Week 2"];
-const SCHEDULE_PERIODS = ["Period 1", "Period 2", "Period 3", "Period 4", "Period 5"];
+let peopleData = []; // [{ id: 'name', name: 'Name', color: 'var(--color-x)' }, ...]
+let timetableData = {}; // { Person: { Week 1: { Day: [Periods] } } }
+let currentCatchphrases = []; // ['phrase1', 'phrase2', ...]
 
 // --- Configuration and Initialization ---
+
 // Mandatory Canvas environment variables
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
 const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-// Custom Alert/Modal utility (Replaces alert() and window.confirm())
-const showCustomAlert = (title, message) => {
-    const modal = document.getElementById('confirmModal');
-    // Simple implementation for demonstration
-    modal.style.display = 'flex'; // Use flex to center
-    modal.innerHTML = `
-        <div class="scheduleModalBack" style="display:flex;">
-            <div class="scheduleModal">
-                <div class="scheduleHeader">
-                    <h3 style="margin:0;">${title}</h3>
-                    <span class="modalClose" onclick="document.getElementById('confirmModal').style.display='none';">&times;</span>
-                </div>
-                <div style="padding: 10px 0;">${message}</div>
-                <button class="btn primary" style="width:100%" onclick="document.getElementById('confirmModal').style.display='none';">OK</button>
-            </div>
-        </div>
-    `;
+// Firestore Paths
+const TIMETABLE_DOC_PATH = `artifacts/${appId}/public/data/timetable/schedule`;
+const CATCHPHRASE_DOC_PATH = `artifacts/${appId}/public/data/catchphrases/phrases`;
+const PEOPLE_DOC_PATH = `artifacts/${appId}/public/data/people/roster`;
+const DARK_MODE_DOC_REF = () => doc(db, `artifacts/${appId}/users/${userId}/preferences/settings`);
+
+// Initial Data Structure (re-embedded from uploaded files for database seeding)
+const INITIAL_TIMETABLE_DATA = {
+    "Alex": {
+        "color": "blue",
+        "Week 1": {
+            "Monday": ["Business", "Sociology", "Media Lesson 10", "", ""],
+            "Tuesday": ["Media", "Business", "", "Sociology", ""],
+            "Wednesday": ["", "", "", "Media", "Business"],
+            "Thursday": ["", "Sociology Lesson 10", "Sociology", "Business", "Media"],
+            "Friday": ["", "Media", "Business", "", "Sociology"]
+        },
+        "Week 2": {
+            "Monday": ["Business", "Sociology", "Business Lesson 10", "Media", ""],
+            "Tuesday": ["Media", "Business", "TPE", "Citizenship", ""],
+            "Wednesday": ["", "Sociology", "", "Media", "Business"],
+            "Thursday": ["Psychology", "Sociology", "Sociology", "Business", "Sociology"],
+            "Friday": ["", "Media", "Business", "", "Sociology"]
+        }
+    },
+    "Oliwia": {
+        "color": "pink",
+        "Week 1": {
+            "Monday": ["Maths", "", "Sociology Lesson 10", "Psychology Lesson 10", ""],
+            "Tuesday": ["Sociology", "Maths", "", "Maths Lesson 10", "Psychology"],
+            "Wednesday": ["", "TPE", "Psychology", "Sociology", "Maths"],
+            "Thursday": ["Psychology", "", "", "Maths", "Sociology"],
+            "Friday": ["Maths", "TPE", "Media Lesson 10", "Psychology Lesson 10", ""]
+        },
+        "Week 2": {
+            "Monday": ["Maths", "", "Psychology", "Sociology", ""],
+            "Tuesday": ["Sociology", "Maths", "", "Citizenship", "Psychology"],
+            "Wednesday": ["", "", "Psychology", "Sociology", "Maths"],
+            "Thursday": ["Psychology", "", "", "", "Sociology"],
+            "Friday": ["Maths", "TPE", "Media Lesson 10", "Psychology Lesson 10", ""]
+        }
+    },
+    "Prinson": {
+        "color": "darkgreen",
+        "Week 1": {
+            "Monday": ["", "Chemistry Lesson 10", "Biology", "Psychology Lesson 10", ""],
+            "Tuesday": ["Biology", "", "", "Chemistry", "Psychology"],
+            "Wednesday": ["EQA", "TPE", "Psychology", "Biology", ""],
+            "Thursday": ["Psychology", "Chemistry", "Chemistry", "", "Biology"],
+            "Friday": ["EQA", "TPE", "Chemistry", "Psychology", "Biology"]
+        },
+        "Week 2": {
+            "Monday": ["", "Chemistry", "Psychology", "Biology Lesson 10", ""],
+            "Tuesday": ["Biology", "", "", "Citizenship", "Psychology"],
+            "Wednesday": ["EQA", "Chemistry", "Psychology", "Biology", ""],
+            "Thursday": ["Psychology", "Chemistry", "Chemistry", "", "Biology"],
+            "Friday": ["EQA", "TPE", "Chemistry", "Psychology", "Biology"]
+        }
+    },
+    "Hanan": {
+        "color": "red",
+        "Week 1": {
+            "Monday": ["", "Sociology", "Media Lesson 10", "CTEC Business", ""],
+            "Tuesday": ["Media", "", "", "Sociology", "CTEC Business"],
+            "Wednesday": ["", "", "CTEC Business Lesson 10", "Media", ""],
+            "Thursday": ["CTEC Business", "Sociology", "CTEC Business", "Maths re-take", "Health & Social Care"],
+            "Friday": ["CTEC Business", "Sociology", "Media", "", "Sociology"]
+        },
+        "Week 2": {
+            "Monday": ["", "Sociology", "CTEC Business", "Media", ""],
+            "Tuesday": ["Media", "", "TPE", "Citizenship", "CTEC Business"],
+            "Wednesday": ["", "Sociology", "CTEC Business", "Media", ""],
+            "Thursday": ["CTEC Business", "Sociology", "Sociology", "", "Media"],
+            "Friday": ["CTEC Business", "Sociology", "Media", "Health & Social Care", "Health & Social Care"]
+        }
+    },
+    "Hannah": {
+        "color": "yellow",
+        "Week 1": {
+            "Monday": ["EQA", "", "Media Lesson 10", "CTEC Business", "Health & Social Care"],
+            "Tuesday": ["Media", "", "Health & Social Care", "Maths re-take", "CTEC Business"],
+            "Wednesday": ["Health & Social Care", "Health & Social Care", "CTEC Business Lesson 10", "Media", ""],
+            "Thursday": ["CTEC Business", "Sociology", "CTEC Business", "Maths re-take", "Health & Social Care"],
+            "Friday": ["CTEC Business", "Sociology", "Media", "Health & Social Care", "Health & Social Care"]
+        },
+        "Week 2": {
+            "Monday": ["EQA", "", "CTEC Business", "Media", "Health & Social Care"],
+            "Tuesday": ["Media", "", "Health & Social Care", "Citizenship", "CTEC Business"],
+            "Wednesday": ["Health & Social Care", "maths re-take", "CTEC Business", "Media", "TPE"],
+            "Thursday": ["CTEC Business", "maths re-take", "CTEC Business", "Maths", "Media"],
+            "Friday": ["CTEC Business", "Sociology", "Media", "Health & Social Care", "Health & Social Care"]
+        }
+    }
 };
 
+const INITIAL_PEOPLE_DATA = [
+    { id: 'Alex', name: 'Alex', color: 'var(--color-blue)' },
+    { id: 'Oliwia', name: 'Oliwia', color: 'var(--color-pink)' },
+    { id: 'Prinson', name: 'Prinson', color: 'var(--color-darkgreen)' },
+    { id: 'Hanan', name: 'Hanan', color: 'var(--color-red)' },
+    { id: 'Hannah', name: 'Hannah', color: 'var(--color-yellow)' }
+];
 
-// --- FIREBASE AND DATA LOADING ---
 
+// --- Firebase Logic ---
+
+/**
+ * Checks if key data documents exist and uploads initial data if they don't.
+ */
+const seedDatabase = async () => {
+    if (!db || !userId) return;
+
+    try {
+        // 1. Seed Timetable Data
+        const timetableRef = doc(db, TIMETABLE_DOC_PATH);
+        const timetableSnap = await getDoc(timetableRef);
+
+        if (!timetableSnap.exists()) {
+            await setDoc(timetableRef, { data: INITIAL_TIMETABLE_DATA });
+            console.log("Firestore: Timetable data seeded.");
+        }
+
+        // 2. Seed People Data (Roster)
+        const peopleRef = doc(db, PEOPLE_DOC_PATH);
+        const peopleSnap = await getDoc(peopleRef);
+
+        if (!peopleSnap.exists()) {
+            await setDoc(peopleRef, { people: INITIAL_PEOPLE_DATA });
+            console.log("Firestore: People data seeded.");
+        }
+
+        // 3. Seed Catchphrases (if collection is empty)
+        const catchphraseRef = doc(db, CATCHPHRASE_DOC_PATH);
+        const catchphraseSnap = await getDoc(catchphraseRef);
+        
+        // Initialize with an empty array if not present, no default phrases
+        if (!catchphraseSnap.exists()) {
+             await setDoc(catchphraseRef, { phrases: [] });
+             console.log("Firestore: Catchphrases initialized.");
+        }
+
+    } catch (error) {
+        console.error("Error seeding database:", error);
+    }
+}
+
+/**
+ * Sets up real-time listeners for all public and private data documents.
+ */
+const subscribeToData = () => {
+    if (!db || !userId || !isAuthReady) return;
+
+    // 1. Subscribe to Timetable Data
+    onSnapshot(doc(db, TIMETABLE_DOC_PATH), (docSnap) => {
+        if (docSnap.exists() && docSnap.data().data) {
+            timetableData = docSnap.data().data;
+            updateTimetableUI();
+            console.log("Firestore: Timetable data updated in real-time.");
+        } else {
+            timetableData = {};
+            updateTimetableUI();
+            console.log("Firestore: Timetable document not found or empty.");
+        }
+    }, (error) => {
+        console.error("Error subscribing to timetable:", error);
+    });
+
+    // 2. Subscribe to People Data (Roster)
+    onSnapshot(doc(db, PEOPLE_DOC_PATH), (docSnap) => {
+        if (docSnap.exists() && docSnap.data().people) {
+            peopleData = docSnap.data().people;
+            updateTimetableUI(); 
+            updateCatchphraseUI(); 
+            console.log("Firestore: People data updated in real-time.");
+        } else {
+            peopleData = [];
+            updateTimetableUI();
+            console.log("Firestore: People document not found or empty.");
+        }
+    }, (error) => {
+        console.error("Error subscribing to people data:", error);
+    });
+
+    // 3. Subscribe to Catchphrases
+    onSnapshot(doc(db, CATCHPHRASE_DOC_PATH), (docSnap) => {
+        if (docSnap.exists() && Array.isArray(docSnap.data().phrases)) {
+            currentCatchphrases = docSnap.data().phrases;
+            updateCatchphraseUI();
+            console.log("Firestore: Catchphrases updated in real-time.");
+        } else {
+            currentCatchphrases = [];
+            updateCatchphraseUI();
+            console.log("Firestore: Catchphrases document not found or empty array.");
+        }
+    }, (error) => {
+        console.error("Error subscribing to catchphrases:", error);
+    });
+
+    // 4. Subscribe to Dark Mode Preference (Private Data)
+    onSnapshot(DARK_MODE_DOC_REF(), (docSnap) => {
+        if (docSnap.exists() && typeof docSnap.data().darkMode === 'boolean') {
+            setDarkMode(docSnap.data().darkMode, false); // false to avoid Firestore write loop
+            console.log("Firestore: Dark mode preference loaded/updated.");
+        } else {
+            // If no preference exists, default to light mode (false) and save it.
+            setDarkMode(false, true); 
+        }
+    }, (error) => {
+        console.error("Error subscribing to dark mode preference:", error);
+        setDarkMode(false, false);
+    });
+}
+
+/**
+ * Initializes Firebase, authenticates the user, and starts the data loading process.
+ */
 const setupFirebase = async () => {
     if (!firebaseConfig) {
         console.error("Firebase configuration is missing.");
         return;
     }
-    setLogLevel('Debug');
-    
+
+    setLogLevel('debug');
     try {
         const app = initializeApp(firebaseConfig);
         db = getFirestore(app);
         auth = getAuth(app);
-        
-        // 1. Authentication
+
+        // Sign in using the provided token or anonymously
         if (initialAuthToken) {
             await signInWithCustomToken(auth, initialAuthToken);
         } else {
             await signInAnonymously(auth);
         }
 
-        onAuthStateChanged(auth, (user) => {
-            const userIdDisplay = document.getElementById('userIdDisplay');
+        // Wait for auth state change to get the userId
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
                 userId = user.uid;
                 isAuthReady = true;
-                userIdDisplay.textContent = userId;
-                console.log("Authenticated with user ID:", userId);
-                // 2. Start listening to catchphrases after authentication
-                startCatchphraseListener();
+                document.getElementById('userIdDisplay').textContent = `User ID: ${userId}`;
+
+                // Seed the database only after auth is ready
+                await seedDatabase();
+
+                // Start real-time listeners
+                subscribeToData();
+
             } else {
-                // Should only happen if sign-in failed, but ensure state is clean
-                userId = crypto.randomUUID(); // Use a temp ID if auth failed
-                isAuthReady = true;
-                userIdDisplay.textContent = 'Anonymous';
-                console.log("User is signed out or anonymous.");
+                userId = null;
+                isAuthReady = true; 
+                document.getElementById('userIdDisplay').textContent = 'User ID: N/A (Anon)';
             }
         });
 
@@ -87,264 +280,247 @@ const setupFirebase = async () => {
     }
 };
 
-const startCatchphraseListener = () => {
-    if (!db || !isAuthReady) return;
+// --- UI Rendering and Interaction ---
 
-    // Public collection for shared catchphrases
-    const phrasesCollectionRef = collection(db, `artifacts/${appId}/public/data/catchphrases`);
+/**
+ * Updates the UI elements (selects) based on loaded people data.
+ */
+const updateTimetableUI = () => {
+    const whoSelects = document.querySelectorAll('#whoSelect2'); // Only whoSelect2 is used for lookup
+    const daySelects = document.querySelectorAll('#daySelect2');
     
-    onSnapshot(phrasesCollectionRef, (snapshot) => {
-        currentCatchphrases = [];
-        snapshot.forEach((doc) => {
-            const data = doc.data();
-            if (data.phrase) {
-                currentCatchphrases.push(data.phrase);
-            }
+    // Clear existing options
+    whoSelects.forEach(select => select.innerHTML = '');
+    daySelects.forEach(select => select.innerHTML = '');
+
+    if (peopleData.length > 0) {
+        // Populate Who Selects (People)
+        peopleData.forEach(person => {
+            const option = document.createElement('option');
+            option.value = person.id;
+            option.textContent = person.name;
+            whoSelects.forEach(select => select.appendChild(option.cloneNode(true)));
         });
-        console.log(`Loaded ${currentCatchphrases.length} catchphrases.`);
-        updateCatchphraseUI();
-    }, (error) => {
-        console.error("Error listening to catchphrases:", error);
-    });
+
+        // Set the first person as default
+        whoSelects.forEach(select => select.value = peopleData[0].id);
+
+        // Populate Day Selects
+        const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+        days.forEach(day => {
+            const option = document.createElement('option');
+            option.value = day;
+            option.textContent = day;
+            daySelects.forEach(select => select.appendChild(option.cloneNode(true)));
+        });
+        
+        // Ensure initial selection is set for Day
+        if (days.length > 0) {
+             daySelects.forEach(select => select.value = days[0]);
+        }
+    } else {
+        // Fallback or loading state
+        whoSelects.forEach(select => select.innerHTML = '<option value="">Loading People...</option>');
+        daySelects.forEach(select => select.innerHTML = '<option value="">Loading Days...</option>');
+    }
 };
 
-// --- CATCHPHRASE LOGIC ---
-
+/**
+ * Updates the catchphrase display with a random phrase from the database.
+ */
 const updateCatchphraseUI = () => {
-    const displayElement = document.getElementById('catchphraseDisplay');
+    const phraseDisplay = document.getElementById('catchphraseDisplay');
 
     if (currentCatchphrases.length === 0) {
-        displayElement.innerHTML = `<p style="text-align:center; color:var(--muted); margin:0;">No catchphrases added yet. Be the first!</p>`;
+        phraseDisplay.textContent = "Time for a new tag line!";
         return;
     }
 
-    // Display all phrases as tags for better UX, or randomly select one if preferred
-    // For now, let's stick to shuffling the display:
     const randomIndex = Math.floor(Math.random() * currentCatchphrases.length);
-    displayElement.innerHTML = `<p style="text-align:center; font-weight: 500; margin:0;">"${currentCatchphrases[randomIndex]}"</p>`;
+    phraseDisplay.textContent = currentCatchphrases[randomIndex];
 };
 
-const handleAddPhrase = async () => {
-    const input = document.getElementById('newPhraseInput');
-    const newPhrase = input.value.trim();
-
-    if (!newPhrase) {
-        showCustomAlert("Input Error", "Please enter a phrase before adding.");
-        return;
-    }
-
-    if (!isAuthReady || !db) {
-        showCustomAlert("Error", "App is still loading. Please wait a moment.");
-        return;
-    }
-
-    try {
-        const phrasesCollectionRef = collection(db, `artifacts/${appId}/public/data/catchphrases`);
-        // Use setDoc with a generated ID
-        await setDoc(doc(phrasesCollectionRef), {
-            phrase: newPhrase,
-            authorId: userId,
-            timestamp: new Date().toISOString()
-        });
-
-        input.value = ''; // Clear the input
-        showCustomAlert("Success", "Catchphrase added and shared!");
-        // The onSnapshot listener handles the UI update
-    } catch (error) {
-        console.error("Error adding phrase to Firestore:", error);
-        showCustomAlert("Save Error", "Failed to add phrase. Check console for details.");
-    }
-};
-
-// --- TIMETABLE DATA LOADING ---
-
-const loadTimetableData = async () => {
-    try {
-        // Fetch the timetable data from the local JSON file
-        const response = await fetch('timetable.json');
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        timetableData = await response.json();
-        console.log("Timetable data loaded successfully:", Object.keys(timetableData));
-        return true;
-    } catch (error) {
-        console.error("Could not load timetable.json:", error);
-        showCustomAlert("Data Error", "Could not load timetable data. Check console for details.");
-        return false;
-    }
-};
-
-// --- DROPDOWN INITIALIZATION AND LOGIC ---
-
-const populateScheduleDropdowns = () => {
-    // Who's in (or not) dropdowns
-    const whoSelect1 = document.getElementById('whoSelect1');
-    const weekSelect1 = document.getElementById('weekSelect1');
-    const daySelect1 = document.getElementById('daySelect1');
-    const periodSelect1 = document.getElementById('periodSelect1');
-
-    // My Day dropdowns
-    const whoSelect2 = document.getElementById('whoSelect');
-    const weekSelect2 = document.getElementById('weekSelect2');
-    const daySelect2 = document.getElementById('daySelect2');
-
-    // Helper function to populate a select element
-    const populateSelect = (selectElement, options, initialValue = "") => {
-        selectElement.innerHTML = `<option value="">-- Select --</option>`;
-        options.forEach(optionText => {
-            const option = document.createElement('option');
-            option.value = optionText;
-            option.textContent = optionText;
-            selectElement.appendChild(option);
-        });
-        if (options.includes(initialValue)) {
-            selectElement.value = initialValue;
-        }
-    };
-    
-    // Get person names from timetableData keys
-    const personNames = Object.keys(timetableData).sort();
-
-    // 1. Populate Who (People)
-    populateSelect(whoSelect1, personNames, personNames[0]);
-    populateSelect(whoSelect2, personNames, personNames[0]); // whoSelect is the 'My Day' one
-
-    // 2. Populate Weeks
-    populateSelect(weekSelect1, SCHEDULE_WEEKS, SCHEDULE_WEEKS[0]);
-    populateSelect(weekSelect2, SCHEDULE_WEEKS, SCHEDULE_WEEKS[0]);
-
-    // 3. Populate Days
-    populateSelect(daySelect1, SCHEDULE_DAYS, SCHEDULE_DAYS[0]);
-    populateSelect(daySelect2, SCHEDULE_DAYS, SCHEDULE_DAYS[0]);
-
-    // 4. Populate Periods (for Who's in)
-    populateSelect(periodSelect1, SCHEDULE_PERIODS, SCHEDULE_PERIODS[0]);
-};
-
-
-const handleShowDailySchedule = () => {
-    const who = document.getElementById('whoSelect').value;
-    const week = document.getElementById('weekSelect2').value;
-    const day = document.getElementById('daySelect2').value;
-
+/**
+ * Custom function to display a schedule in the modal.
+ * @param {string} title The title of the schedule.
+ * @param {Array<string>} schedule An array of period names.
+ * @param {string} color The CSS variable name for the person's color.
+ */
+const showScheduleModal = (title, schedule, color) => {
     const modalBack = document.getElementById('scheduleModalBack');
+    const modal = document.getElementById('scheduleModal');
     const modalTitle = document.getElementById('scheduleTitle');
-    const modalContent = document.getElementById('modalScheduleContent');
+    const content = document.getElementById('modalScheduleContent');
 
-    if (!who || !week || !day) {
-        showCustomAlert("Selection Error", "Please select a person, week, and day to check the schedule.");
-        return;
-    }
+    modalTitle.textContent = title;
+    // Set color variable for the schedule item border
+    modal.style.setProperty('--person-color', color);
+    content.innerHTML = ''; // Clear previous content
 
-    const personSchedule = timetableData[who];
+    const periods = ["Period 1", "Period 2", "Period 3", "Period 4", "Period 5"];
 
-    // Check if data path exists
-    if (!personSchedule || !personSchedule[week] || !personSchedule[week][day]) {
-        modalTitle.textContent = `${who}'s Schedule`;
-        modalContent.innerHTML = `<p style="padding: 10px; color: var(--text);">No schedule found for ${who} on ${week}, ${day}.</p>`;
-        modalBack.style.display = 'flex';
-        return;
-    }
-
-    const periods = personSchedule[week][day];
-    // Get the color variable name from the data (e.g., 'blue', 'pink')
-    const colorKey = personSchedule.color || 'primary-btn-bg';
-    const personColorVar = `var(--color-${colorKey})`; // Maps to CSS variables
-
-    modalTitle.textContent = `${who}'s Timetable: ${day} (${week})`;
-    modalContent.innerHTML = ''; // Clear previous content
-
-    periods.forEach((subject, index) => {
-        // Period names are hardcoded 1 to 5 based on the JSON structure
-        const periodName = SCHEDULE_PERIODS[index] || `Period ${index + 1}`;
-        const actualSubject = subject.trim() || 'Free Period';
-        const isFree = actualSubject === 'Free Period';
+    schedule.forEach((subject, index) => {
+        const periodName = periods[index] || `Period ${index + 1}`;
+        const subjectText = subject.trim() || 'FREE PERIOD 🧘';
         
-        // Define background based on subject type
-        const bgColor = isFree ? 'var(--muted)' : personColorVar;
-
         const row = document.createElement('div');
         row.className = 'scheduleRow';
         row.innerHTML = `
-            <span class="schedulePeriod" style="background-color: ${bgColor};">
-                ${periodName}
-            </span>
-            <span class="scheduleSubject" style="color: ${isFree ? 'var(--muted)' : 'var(--text)'};">
-                ${actualSubject}
-            </span> 
+            <div class="schedulePeriod">${periodName}</div>
+            <div class="scheduleSubject">${subjectText}</div>
         `;
-        modalContent.appendChild(row);
+        content.appendChild(row);
     });
 
     modalBack.style.display = 'flex';
 };
 
 
-// --- WHO'S IN LOGIC (Placeholder for future implementation) ---
+// --- Feature Handlers (Firestore interactions) ---
 
-const handleFindPeople = () => {
-    showCustomAlert("Feature Not Ready", "The 'Find people' feature logic is pending the next update. Please use the 'My Day' feature for now!");
-    // The actual implementation would involve iterating through all timetableData and comparing the selected lesson.
+/**
+ * Handles the logic for adding a new catchphrase to Firestore.
+ */
+const handleAddPhrase = async () => {
+    if (!isAuthReady || !db) {
+        showCustomAlert("Error", "Authentication is not ready. Please wait.");
+        return;
+    }
+
+    const newPhraseInput = document.getElementById('newPhraseInput');
+    const newPhrase = newPhraseInput.value.trim();
+
+    if (!newPhrase) {
+        showCustomAlert("Error", "Please enter a phrase.");
+        return;
+    }
+
+    try {
+        const catchphraseRef = doc(db, CATCHPHRASE_DOC_PATH);
+        await updateDoc(catchphraseRef, {
+            phrases: arrayUnion(newPhrase)
+        });
+
+        newPhraseInput.value = '';
+        showCustomAlert("Success", "New phrase added to the shared list!");
+    } catch (error) {
+        console.error("Error adding phrase:", error);
+        showCustomAlert("Error", `Failed to add phrase: ${error.message}`);
+    }
+};
+
+/**
+ * Handles the button click for displaying a person's schedule.
+ */
+const handleShowDailySchedule = () => {
+    const whoId = document.getElementById('whoSelect2').value;
+    const week = document.getElementById('weekSelect2').value;
+    const day = document.getElementById('daySelect2').value;
+
+    if (!whoId || !week || !day) {
+        showCustomAlert("Error", "Please select a person, week, and day.");
+        return;
+    }
+
+    // Check if data is loaded
+    if (Object.keys(timetableData).length === 0) {
+        showCustomAlert("Error", "Timetable data is still loading. Please wait a moment.");
+        return;
+    }
+    
+    const personData = timetableData[whoId];
+    if (!personData) {
+        showCustomAlert("Error", `Timetable data not found for ${whoId}.`);
+        return;
+    }
+
+    const schedule = personData[week]?.[day];
+
+    if (!schedule || schedule.length === 0) {
+        // Fallback for days with no schedule data
+        showScheduleModal(`${whoId}'s Schedule: ${day} (${week})`, ["", "", "", "", ""], 'var(--muted)');
+        return;
+    }
+    
+    // Find person's color for styling
+    const person = peopleData.find(p => p.id === whoId);
+    const color = person ? person.color : 'var(--text)';
+
+    const title = `${whoId}'s Schedule: ${day} (${week})`;
+    showScheduleModal(title, schedule, color);
 };
 
 
-// --- EVENT LISTENERS AND DARK MODE ---
+// --- Utility Functions (Alerts, Dark Mode) ---
+
+/**
+ * Shows a custom modal alert message instead of the blocked window.alert().
+ * @param {string} title The title of the alert.
+ * @param {string} message The message content.
+ */
+const showCustomAlert = (title, message) => {
+    const modal = document.getElementById('confirmModal');
+    modal.style.display = 'flex';
+    modal.innerHTML = `
+        <div class="modalContent">
+            <h3>${title}</h3>
+            <p>${message}</p>
+            <button class="btn primary" onclick="document.getElementById('confirmModal').style.display='none'">OK</button>
+        </div>
+    `;
+};
+// Expose for inline onclick
+window.showCustomAlert = showCustomAlert; 
+
+/**
+ * Sets the dark mode state and optionally updates Firestore.
+ * @param {boolean} isDark - true for dark mode, false for light mode.
+ * @param {boolean} updateFirestore - if true, save preference to Firestore.
+ */
+const setDarkMode = (isDark, updateFirestore = true) => {
+    const toggleInput = document.getElementById('darkModeToggle');
+    
+    if (isDark) {
+        document.body.classList.add('dark-mode');
+        if (toggleInput) toggleInput.checked = true;
+    } else {
+        document.body.classList.remove('dark-mode');
+        if (toggleInput) toggleInput.checked = false;
+    }
+
+    if (updateFirestore && isAuthReady && db && userId) {
+        const ref = DARK_MODE_DOC_REF();
+        setDoc(ref, { darkMode: isDark }, { merge: true }).catch(e => {
+            console.error("Failed to save dark mode preference:", e);
+        });
+    }
+}
+
+const toggleDarkMode = () => {
+    const isDark = !document.body.classList.contains('dark-mode');
+    setDarkMode(isDark, true);
+};
+
+// --- Event Listeners and Execution ---
 
 const setupEventListeners = () => {
+    // Add Phrase Feature
     document.getElementById('addPhraseBtn').addEventListener('click', handleAddPhrase);
     document.getElementById('refreshTag').addEventListener('click', updateCatchphraseUI);
-    document.getElementById('findPeopleBtn').addEventListener('click', handleFindPeople);
 
     // Daily Schedule Feature
     document.getElementById('whatBtn').addEventListener('click', handleShowDailySchedule);
     document.getElementById('scheduleClose').addEventListener('click', () => {
         document.getElementById('scheduleModalBack').style.display = 'none';
     });
-    
-    // Close modal by clicking outside
-    document.getElementById('scheduleModalBack').addEventListener('click', (e) => {
-        if (e.target.id === 'scheduleModalBack') {
-            document.getElementById('scheduleModalBack').style.display = 'none';
-        }
-    });
-
 
     // Dark Mode Toggle
     document.getElementById('darkModeToggle').addEventListener('click', toggleDarkMode);
 };
 
-// --- Dark Mode Logic ---
-
-const loadDarkModePreference = () => {
-    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const storedPreference = localStorage.getItem('darkMode');
-    
-    let isDarkMode = false;
-    if (storedPreference !== null) {
-        isDarkMode = storedPreference === 'true';
-    } else if (prefersDark) {
-        isDarkMode = true;
-    }
-
-    if (isDarkMode) {
-        document.body.classList.add('dark-mode');
-    }
-};
-
-const toggleDarkMode = () => {
-    const isDarkMode = document.body.classList.toggle('dark-mode');
-    localStorage.setItem('darkMode', isDarkMode);
-};
-
 // --- Execution ---
 
 window.onload = async () => {
-    loadDarkModePreference();
     setupEventListeners();
-    const dataLoaded = await loadTimetableData(); // Load JSON first
-    if (dataLoaded) {
-        populateScheduleDropdowns(); // Populate UI with loaded data
-    }
-    await setupFirebase(); // Start the Firebase auth and data loading process
+    await setupFirebase(); 
 };
