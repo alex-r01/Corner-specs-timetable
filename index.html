@@ -76,30 +76,32 @@
         .title {
             font-weight:700;
             text-align:center;
-            font-size:28px;
             letter-spacing:-0.6px;
             margin-bottom:12px;
             position:relative;
         }
+        
+        /* UPDATED TAG STYLES: Now positioned below the title and centered */
         .tag {
-            position:absolute;
-            right:6%;
-            top:-8px;
-            transform: rotate(-25deg);
+            display: inline-block; /* Allows padding/background to wrap content */
+            margin-top: 4px; /* Space below the H1 */
+            
             color:#333333 !important;
             background:linear-gradient(90deg, var(--yellow-light), rgba(255,248,200,0.95));
-            padding:6px 10px;
-            border-radius:10px;
+            padding: 4px 8px; /* Reduced padding */
+            border-radius: 8px; /* Smaller radius */
             box-shadow: var(--soft-shadow);
             opacity:0;
-            animation: tagIn 700ms ease forwards;
-            font-weight:700;
-            font-size:12px;
+            animation: fadeIn 500ms ease forwards; /* New fade in animation */
+            font-weight: 600; /* Slightly lighter weight */
+            font-size: 11px; /* Smaller font size */
             border: 1px solid rgba(0,0,0,0.1);
         }
-        @keyframes tagIn{
-            from { transform: rotate(-45deg) translateY(-10px); opacity:0; }
-            to { transform: rotate(-25deg) translateY(0); opacity:1; }
+        
+        /* New, simpler animation for the centered tag */
+        @keyframes fadeIn{
+            from { opacity:0; transform:translateY(5px); }
+            to { opacity:1; transform:translateY(0); }
         }
 
         /* Dark Mode Toggle Button */
@@ -217,18 +219,21 @@
             .wrap{
                 padding:12px;
             }
-            .title{font-size:22px}
+            .title h1{font-size:26px}
         }
     </style>
 </head>
 <body>
     <div class="wrap">
         <div class="title card">
-            <div style="position:relative">
-                <div style="font-size:28px;">Fuckass Timetable</div>
-                <div id="randomTag" class="tag" aria-hidden="true"></div>
-                <div id="darkModeToggle" role="button" aria-label="Toggle Dark Mode">☀️</div>
-            </div>
+            <!-- Dark Mode Toggle is positioned absolutely relative to .title -->
+            <div id="darkModeToggle" role="button" aria-label="Toggle Dark Mode">☀️</div>
+            
+            <!-- Main Title is now an H1 for better structure -->
+            <h1 style="font-size:28px; margin: 0 0 4px 0; font-weight:700;">Fuckass Timetable</h1>
+            
+            <!-- Catchphrase is now directly below the title -->
+            <div id="randomTag" class="tag" aria-hidden="true"></div>
         </div>
 
         <div class="card">
