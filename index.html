@@ -4,23 +4,49 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
   <title>Fuckass Timetable</title>
   <style>
-    /* ** IMPORTANT ** This CSS is optimized for mobile touch screens (Fluid width, large tap targets, no fixed pixels).
-    */
+    /* ** THEME VARIABLES (Light Mode Default) ** */
     :root{
       --bg: #ffffff;
+      --text: #111111;
       --card: #f7f7f8;
+      --card-border: #eee;
       --muted: #9b9b9b;
-      --radius: 14px;
+      --input-bg: white;
+      --input-border: #111;
+      --primary-btn-bg: #111;
+      --primary-btn-text: white;
+      --secondary-btn-bg: #fff;
+      --secondary-btn-border: #111;
+      --yellow-light: #ffd54e;
       --soft-shadow: 0 6px 18px rgba(12,12,14,0.06);
-      --yellow: #ffd54e;
+      --radius: 14px;
     }
+
+    /* ** DARK MODE OVERRIDES ** */
+    body.dark-mode {
+      --bg: #111111;
+      --text: #f0f0f0;
+      --card: #1c1c1e;
+      --card-border: #333333;
+      --muted: #b0b0b0;
+      --input-bg: #2c2c2e;
+      --input-border: #444;
+      --primary-btn-bg: #eeeeee;
+      --primary-btn-text: #111;
+      --secondary-btn-bg: #1c1c1e;
+      --secondary-btn-border: #444;
+      --soft-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Base Styles */
     html,body{
       height:100%;
       margin:0;
       font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
       background:var(--bg);
-      color:#111; 
+      color:var(--text); 
       overflow-x: hidden;
+      transition: background 0.3s, color 0.3s;
     }
     
     body {
@@ -53,7 +79,7 @@
       top:-8px;
       transform: rotate(-25deg);
       color:#333333 !important;
-      background:linear-gradient(90deg, rgba(255,236,166,0.95), rgba(255,248,200,0.95));
+      background:linear-gradient(90deg, var(--yellow-light), rgba(255,248,200,0.95));
       padding:6px 10px;
       border-radius:10px;
       box-shadow: var(--soft-shadow);
@@ -67,14 +93,29 @@
       to { transform: rotate(-25deg) translateY(0); opacity:1; }
     }
 
-    .card { background:var(--card); border-radius:var(--radius); padding:14px; box-shadow:var(--soft-shadow); margin-bottom:12px; }
-    label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px;}
-    select, button, input[type="text"] {
-      width:100%; padding:12px 14px; border-radius:12px; border:2px solid #111; outline:none; font-size:15px;
-      background:white; box-sizing:border-box;
-      min-width: 0;
+    /* Dark Mode Toggle Button */
+    #darkModeToggle {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 22px;
+      cursor: pointer;
+      transition: transform 0.1s ease;
+      z-index: 10;
     }
-    select { border-color:#111; }
+    #darkModeToggle:active {
+      transform: translateY(-50%) scale(0.9);
+    }
+
+    .card { background:var(--card); border-radius:var(--radius); padding:14px; box-shadow:var(--soft-shadow); margin-bottom:12px; transition: background 0.3s, box-shadow 0.3s; }
+    label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px; transition: color 0.3s;}
+    select, button, input[type="text"] {
+      width:100%; padding:12px 14px; border-radius:12px; border:2px solid var(--input-border); outline:none; font-size:15px;
+      background:var(--input-bg); color:var(--text); box-sizing:border-box;
+      min-width: 0; transition: background 0.3s, border-color 0.3s, color 0.3s;
+    }
+    
     .row{
       display:flex;
       gap:10px;
@@ -87,32 +128,30 @@
     .row select {
         margin-bottom: 8px; 
     }
-    .btn { cursor:pointer; border:none; font-weight:700; background:#111;color:white; border-radius:12px;padding:12px; transition:transform .18s ease; }
+    .btn { cursor:pointer; border:none; font-weight:700; background:var(--primary-btn-bg);color:var(--primary-btn-text); border-radius:12px;padding:12px; transition:transform .18s ease, background 0.3s, color 0.3s; }
     .btn:active{ transform:scale(.98); }
-    .result { padding:12px; margin-top:12px; border-radius:12px; background:linear-gradient(180deg,#fff,#fafafa); border:1px solid #eee; min-height:60px; }
+    #lessonBtn { background:var(--secondary-btn-bg);color:var(--text);border:2px solid var(--secondary-btn-border); }
+
+    .result { padding:12px; margin-top:12px; border-radius:12px; background:var(--input-bg); border:1px solid var(--card-border); min-height:60px; transition: background 0.3s, border-color 0.3s; }
     .person { display:flex; gap:10px; align-items:center; padding:8px; border-radius:10px; margin-bottom:8px; }
     .swatch{width:14px;height:14px;border-radius:5px;box-shadow:0 2px 6px rgba(0,0,0,0.06);}
     .muted{color:var(--muted);font-size:13px}
     .extra { margin-top:8px; display:flex; gap:8px; }
-    .small { padding:8px 10px; font-size:14px; border-radius:10px; background:#fff; border:1px solid #eaeaea; }
+    .small { padding:8px 10px; font-size:14px; border-radius:10px; background:var(--input-bg); border:1px solid var(--card-border); color:var(--text); cursor:pointer; transition: background 0.3s, border-color 0.3s, color 0.3s; }
     .collapse { max-height:0; overflow:hidden; transition:max-height .35s cubic-bezier(.2,.9,.3,1); }
     .collapse.open { max-height:420px; }
+    hr { border-top-color: var(--card-border) !important; transition: border-top-color 0.3s; }
 
     .person { transform: translateY(6px); opacity:0; animation: personIn .35s forwards; }
     .person:nth-child(1){ animation-delay:30ms } .person:nth-child(2){ animation-delay:80ms } .person:nth-child(3){ animation-delay:120ms } 
     @keyframes personIn { to{ transform:none; opacity:1 } from { transform:translateY(6px); opacity:0 } }
 
-    /* Modal Styles (Confirmation & Custom Alert) */
-    .modalBack{ position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(10,10,10,0.32); z-index:1000; }
-    .modal{ width:90%; max-width:420px; background:#fff; border-radius:12px; padding:14px; box-shadow:var(--soft-shadow); }
+    /* Modal Styles */
+    .modalBack{ position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(10,10,10,0.55); z-index:1000; }
+    .modal{ width:90%; max-width:420px; background:var(--card); border-radius:12px; padding:14px; box-shadow:var(--soft-shadow); color:var(--text); transition: background 0.3s; }
     .tiny{font-size:13px;color:var(--muted); margin-top:8px}
     
     /* Schedule Modal Styles */
-    .scheduleRow{ display: flex; gap: 8px; margin: 6px 0; align-items: center; }
-    .scheduleCell{ padding: 8px; border-radius: 8px; border: 1px solid #eee; text-align: left; }
-    .pnum { width: 50px; text-align: center; font-weight: 600; flex-shrink: 0; background: #f7f7f8; color: #333; border: 1px solid #ddd; }
-    .subj { flex-grow: 1; }
-    
     .scheduleModalBack {
       position: fixed;
       inset: 0;
@@ -127,23 +166,23 @@
       width: 90%;
       max-width: 400px;
       max-height: 80vh; 
-      background: #fff;
+      background: var(--card);
       border-radius: 18px;
       padding: 20px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
       overflow-y: auto; 
+      transition: background 0.3s;
     }
-    .modalHeader {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
+    .scheduleRow{ display: flex; gap: 8px; margin: 6px 0; align-items: center; }
+    .scheduleCell{ padding: 8px; border-radius: 8px; border: 1px solid var(--card-border); text-align: left; background: var(--input-bg); transition: background 0.3s; }
+    .pnum { width: 50px; text-align: center; font-weight: 600; flex-shrink: 0; background: var(--card); color: var(--text); border: 1px solid var(--card-border); }
+    .subj { flex-grow: 1; }
+    
     .modalClose {
       font-size: 24px;
       font-weight: 300;
       cursor: pointer;
-      color: #777;
+      color: var(--muted);
     }
     
     @media (max-width:420px){
@@ -160,6 +199,8 @@
       <div style="position:relative">
         <div style="font-size:28px;">Fuckass Timetable</div>
         <div id="randomTag" class="tag" aria-hidden="true"></div>
+        <!-- Dark Mode Toggle Button -->
+        <div id="darkModeToggle" role="button" aria-label="Toggle Dark Mode">☀️</div>
       </div>
     </div>
 
@@ -181,7 +222,7 @@
 
       <div style="display:flex; gap:10px; margin-top:12px;">
         <button class="btn" id="checkBtn">Check who's free</button>
-        <button class="btn" id="lessonBtn" style="background:#fff;color:#111;border:2px solid #111">Who has a lesson</button>
+        <button class="btn" id="lessonBtn" style="background:var(--secondary-btn-bg);color:var(--text);border:2px solid var(--secondary-btn-border);">Who has a lesson</button>
       </div>
 
       <div id="resultArea" class="result"></div>
@@ -203,7 +244,7 @@
           </div>
         </div>
 
-        <hr style="margin:12px 0;border:none;border-top:1px solid #eee">
+        <hr style="margin:12px 0;border:none;border-top:1px solid var(--card-border);">
 
         <div>
           <label>What do I have today?</label>
@@ -238,17 +279,49 @@
 
 <script>
   // 🛑🛑🛑 CRITICAL EDIT: PASTE THE WEB APP URL HERE
-  // This is the URL you provided:
-  const API_ENDPOINT = 'https://script.google.com/macros/s/AKfycbz3Drz1CRWek8MYH5rD1G-kKhdRs28xu4SRJstDkS8JeH-K_0tZlLlq45CSa7mN2yXdQw/exec'; 
+  // Use the URL you got after deploying the Apps Script as a Web App (e.g., AKfycbz3Drz1CRWek8MYH5rD1G-kKhdRs28xu4SRJstDkS8JeH-K_0tZlLlq45CSa7mN2yXdQw/exec)
+  const API_ENDPOINT = 'https://script.google.com/macros/s/AKfycbyZVUVYLcbQEft7VQ8uHe2Qjla_5sK8Ib0Q9OmYRID5gKsCgpt61ZQ6Bxyp0EP75sqLng/exec'; 
   
   let cfg = null;
+
+  // --- THEME LOGIC ---
+
+  const body = document.body;
+  const toggleButton = document.getElementById('darkModeToggle');
+  const storageKey = 'timetable-theme';
+
+  function applyTheme(isDark) {
+    if (isDark) {
+      body.classList.add('dark-mode');
+      toggleButton.textContent = '🌙';
+    } else {
+      body.classList.remove('dark-mode');
+      toggleButton.textContent = '☀️';
+    }
+  }
+
+  function loadTheme() {
+    const savedTheme = localStorage.getItem(storageKey);
+    // Check local storage, or default to system preference
+    const prefersDark = savedTheme === 'dark' || (savedTheme === null && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    applyTheme(prefersDark);
+  }
+
+  function toggleTheme() {
+    const isDark = body.classList.contains('dark-mode');
+    const newMode = isDark ? 'light' : 'dark';
+    applyTheme(newMode === 'dark');
+    localStorage.setItem(storageKey, newMode);
+  }
+
+  toggleButton.addEventListener('click', toggleTheme);
+  // --- END THEME LOGIC ---
+
 
   /**
    * Universal function to call the Apps Script API via fetch.
    */
   async function callApi(functionName, args = []) {
-    // The API URL is set, so we proceed directly to the fetch call.
-    
     const payload = { functionName, args };
 
     try {
@@ -287,6 +360,7 @@
   // --- CORE APP INITIALIZATION ---
 
   async function init() {
+    loadTheme(); // 1. Load theme preference first
     try {
       const res = await callApi('getConfig');
       cfg = res;
@@ -466,7 +540,7 @@
     if (!groups || groups.length === 0) { area.innerHTML = '<div class="muted">No one is in a lesson right now.</div>'; return; }
     groups.forEach(g => {
       const block = document.createElement('div'); block.style.marginBottom='10px';
-      block.innerHTML = `<div style="margin-bottom:6px"><strong>${g.subject}</strong></div>`;
+      block.innerHTML = `<div style="margin-bottom:6px; color:var(--text)"><strong>${g.subject}</strong></div>`;
       g.people.forEach(p => {
         const row = document.createElement('div'); row.className='person';
         row.innerHTML = `<div class="swatch" style="background:${p.color}"></div><div>${p.name}</div>`;
@@ -510,9 +584,10 @@
     
     let buttonsHtml = '';
     if (isAlert) {
-        buttonsHtml = `<button id="cNo" class="small" style="background:#111;color:#fff; flex:none;">${yesText}</button>`;
+        // If it's just an alert, the 'OK' button uses the primary style
+        buttonsHtml = `<button id="cNo" class="small" style="background:var(--primary-btn-bg);color:var(--primary-btn-text); flex:none; border:none; border: 1px solid var(--primary-btn-bg);">${yesText}</button>`;
     } else {
-        buttonsHtml = `<button id="cNo" class="small" style="flex:none;">${noText}</button><button id="cYes" class="small" style="background:#111;color:#fff;flex:none;">${yesText}</button>`;
+        buttonsHtml = `<button id="cNo" class="small" style="flex:none;">${noText}</button><button id="cYes" class="small" style="background:var(--primary-btn-bg);color:var(--primary-btn-text);flex:none; border:none;">${yesText}</button>`;
     }
     
     root.innerHTML = `<div class="modalBack"><div class="modal"><div><strong>${isAlert ? 'Notification' : 'Confirm'}</strong></div><div class="tiny" style="margin-top:8px">${text}</div><div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px">${buttonsHtml}</div></div></div>`;
