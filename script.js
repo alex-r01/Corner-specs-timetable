@@ -12,6 +12,7 @@ let isAuthReady = false;
 let peopleData = [];
 let timetableData = {};
 let currentCatchphrases = [];
+let currentWhoSelect = 'alessandro'; // Default to Alessandro
 
 // --- Configuration and Initialization ---
 
@@ -24,480 +25,678 @@ const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial
 const MOCK_PEOPLE = [
     { id: 'alessandro', name: 'Alessandro', color: 'var(--color-red)' },
     { id: 'liam', name: 'Liam', color: 'var(--color-blue)' },
-    { id: 'eliza', name: 'Eliza', color: 'var(--color-pink)' },
-    { id: 'oscar', name: 'Oscar', color: 'var(--color-yellow)' },
-    { id: 'sara', name: 'Sara', color: 'var(--color-darkgreen)' },
+    { id: 'prinson', name: 'Prinson', color: 'var(--color-darkgreen)' },
+    { id: 'oliwia', name: 'Oliwia', color: 'var(--color-pink)' },
+    { id: 'hanan', name: 'Hanan', color: 'var(--color-yellow)' },
+    { id: 'hannah', name: 'Hannah', color: 'var(--color-yellow)' }, // Using yellow, will adjust later
 ];
 
+// MOCK Timetable (To prevent errors before Firebase data is loaded)
 const MOCK_TIMETABLE = {
-    WeekA: {
-        Monday: {
-            1: { subject: 'Math', people: ['alessandro', 'liam'] },
-            2: { subject: 'English', people: ['eliza', 'sara'] },
-            3: { subject: 'Free', people: [] },
-            4: { subject: 'Science', people: ['oscar', 'alessandro'] },
-            5: { subject: 'PE', people: ['liam', 'eliza', 'sara', 'oscar'] },
-        },
-        Tuesday: {
-            1: { subject: 'History', people: ['eliza'] },
-            2: { subject: 'Free', people: [] },
-            3: { subject: 'Art', people: ['alessandro', 'oscar'] },
-            4: { subject: 'Math', people: ['liam', 'sara'] },
-            5: { subject: 'Free', people: [] },
-        },
-        Wednesday: {
-            1: { subject: 'Chem', people: ['alessandro', 'eliza'] },
-            2: { subject: 'Physics', people: ['liam', 'oscar'] },
-            3: { subject: 'Free', people: [] },
-            4: { subject: 'English', people: ['sara'] },
-            5: { subject: 'IT', people: ['alessandro', 'liam', 'oscar'] },
-        },
-        Thursday: {
-            1: { subject: 'Bio', people: ['sara', 'eliza'] },
-            2: { subject: 'Art', people: ['alessandro', 'oscar'] },
-            3: { subject: 'Free', people: ['liam', 'sara'] },
-            4: { subject: 'Free', people: [] },
-            5: { subject: 'Math', people: ['eliza', 'liam', 'alessandro'] },
-        },
-        Friday: {
-            1: { subject: 'PE', people: ['liam', 'oscar', 'sara'] },
-            2: { subject: 'History', people: ['alessandro'] },
-            3: { subject: 'Science', people: ['eliza', 'oscar'] },
-            4: { subject: 'Free', people: ['alessandro', 'liam'] },
-            5: { subject: 'English', people: ['eliza', 'sara'] },
-        }
-    },
-    WeekB: {
-        Monday: {
-            1: { subject: 'Science', people: ['alessandro', 'eliza', 'oscar'] },
-            2: { subject: 'Free', people: [] },
-            3: { subject: 'Geo', people: ['liam', 'sara'] },
-            4: { subject: 'Free', people: [] },
-            5: { subject: 'English', people: ['alessandro', 'liam', 'eliza', 'oscar', 'sara'] },
-        },
-        Tuesday: {
-            1: { subject: 'Math', people: ['liam', 'sara'] },
-            2: { subject: 'IT', people: ['alessandro', 'eliza'] },
-            3: { subject: 'Free', people: [] },
-            4: { subject: 'Chem', people: ['oscar'] },
-            5: { subject: 'Physics', people: ['liam', 'eliza'] },
-        },
-        Wednesday: {
-            1: { subject: 'History', people: ['alessandro', 'oscar'] },
-            2: { subject: 'Bio', people: ['sara', 'liam'] },
-            3: { subject: 'English', people: ['eliza', 'alessandro'] },
-            4: { subject: 'Free', people: [] },
-            5: { subject: 'Art', people: ['oscar', 'liam'] },
-        },
-        Thursday: {
-            1: { subject: 'Free', people: [] },
-            2: { subject: 'PE', people: ['alessandro', 'eliza', 'sara'] },
-            3: { subject: 'Math', people: ['oscar', 'liam'] },
-            4: { subject: 'Science', people: ['alessandro', 'eliza'] },
-            5: { subject: 'Geo', people: ['sara', 'oscar'] },
-        },
-        Friday: {
-            1: { subject: 'English', people: ['alessandro', 'liam'] },
-            2: { subject: 'Math', people: ['eliza', 'oscar', 'sara'] },
-            3: { subject: 'Free', people: ['alessandro', 'liam'] },
-            4: { subject: 'IT', people: ['eliza', 'sara'] },
-            5: { subject: 'PE', people: ['oscar', 'alessandro'] },
-        }
+    'Alessandro': {
+        'color': 'red',
+        'Week 1': { 'Monday': ['Maths', 'English', 'Science', 'Period 4', 'Period 5'] },
+        'Week 2': { 'Monday': ['History', 'Geography', 'Art', 'Period 4', 'Period 5'] }
     }
 };
 
-const DEFAULT_CATCHPHRASES = [
-    "Fuckass Friday!",
-    "Timetable Takedown!",
-    "Is anyone free, please?",
-    "Schedule Sucks.",
-    "Bored of Free Periods!",
-    "Lesson Loadout.",
-];
+// --- Helper Functions ---
 
-// Utility: Gets Firestore document reference for public data
-const getPublicDocRef = (collectionName, documentId) => {
-    return doc(db, 'artifacts', appId, 'public', 'data', collectionName, documentId);
+/**
+ * Creates and shows a custom modal dialog for messages or confirmations.
+ * @param {string} title The title of the modal.
+ * @param {string} message The main message content.
+ * @param {string} [confirmText] Text for the primary action button. If null, only an OK/Close button is shown.
+ * @returns {Promise<boolean>} Resolves to true if confirmed, false otherwise.
+ */
+const showCustomModal = (title, message, confirmText = null) => {
+    return new Promise(resolve => {
+        const modal = document.getElementById('confirmModal');
+        modal.innerHTML = ''; // Clear previous content
+
+        const isConfirm = confirmText !== null;
+        
+        // Define the modal structure and styling
+        modal.style.cssText = `
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7); display: flex; align-items: center; justify-content: center;
+            z-index: 1000;
+        `;
+
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.style.cssText = `
+            padding: 20px; max-width: 300px; text-align: center;
+            background: var(--bg); color: var(--text);
+            border-radius: var(--radius);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        `;
+
+        const h3 = document.createElement('h3');
+        h3.textContent = title;
+        h3.style.margin = '0 0 10px 0';
+        h3.style.color = 'var(--text)';
+
+        const p = document.createElement('p');
+        p.textContent = message;
+        p.style.margin = '0 0 20px 0';
+        p.style.fontSize = '14px';
+        p.style.color = 'var(--text)';
+
+        const buttonContainer = document.createElement('div');
+        buttonContainer.style.display = 'flex';
+        buttonContainer.style.justifyContent = isConfirm ? 'space-between' : 'center';
+        buttonContainer.style.gap = '10px';
+
+        const createButton = (text, isPrimary, action) => {
+            const btn = document.createElement('button');
+            btn.textContent = text;
+            btn.className = 'btn';
+            btn.style.flex = isConfirm ? '1' : 'none';
+            if (isPrimary) {
+                btn.classList.add('btn-primary');
+            } else {
+                btn.classList.add('btn-secondary');
+            }
+            btn.style.width = '100%';
+            btn.onclick = () => {
+                modal.style.display = 'none';
+                resolve(action);
+            };
+            return btn;
+        };
+
+        if (isConfirm) {
+            const confirmBtn = createButton(confirmText, true, true);
+            const cancelBtn = createButton('Cancel', false, false);
+            buttonContainer.appendChild(cancelBtn);
+            buttonContainer.appendChild(confirmBtn);
+        } else {
+            const okBtn = createButton('OK', true, true);
+            okBtn.style.width = '100%';
+            buttonContainer.appendChild(okBtn);
+        }
+
+        card.appendChild(h3);
+        card.appendChild(p);
+        card.appendChild(buttonContainer);
+        modal.appendChild(card);
+        modal.style.display = 'flex';
+    });
 };
 
-// Utility: Gets Firestore collection reference for public data
-// const getPublicCollectionRef = (collectionName) => {
-//     return collection(db, 'artifacts', appId, 'public', 'data', collectionName);
-// }; // Not needed for this app, but kept for reference
+// --- Firebase Setup and Data Handlers ---
 
-// --- Firebase and Auth Setup ---
-
+/**
+ * Initializes Firebase, authenticates the user, and sets up real-time listeners.
+ */
 const setupFirebase = async () => {
     if (!firebaseConfig) {
-        console.error("Firebase configuration is missing.");
+        console.error("Firebase config is missing. Cannot initialize Firestore.");
         return;
     }
     try {
+        setLogLevel('Debug');
         const app = initializeApp(firebaseConfig);
         db = getFirestore(app);
         auth = getAuth(app);
-        setLogLevel('debug'); // Enable detailed logging
 
-        // Ensure sign-in happens before Firestore calls
+        // Sign in using the provided token or anonymously if not available
         if (initialAuthToken) {
             await signInWithCustomToken(auth, initialAuthToken);
         } else {
             await signInAnonymously(auth);
         }
 
+        // Set up Auth State Observer
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 userId = user.uid;
+                document.getElementById('userIdDisplay').textContent = userId;
                 isAuthReady = true;
-                console.log("User authenticated:", userId);
-                startDataListeners();
+                console.log("Firebase Auth Ready. User ID:", userId);
+
+                // Start data listeners only once auth is ready
+                setupDataListeners();
             } else {
-                console.log("Authentication failed or logged out.");
-                // Fallback: Use a unique anonymous ID if auth fails
-                userId = crypto.randomUUID(); 
-                isAuthReady = true;
-                startDataListeners(); 
+                userId = null;
+                isAuthReady = true; // Still ready, but logged out/anonymous
+                console.log("Firebase Auth Ready. No user logged in (anonymous or logged out).");
             }
         });
 
     } catch (error) {
-        console.error("Error during Firebase setup:", error);
+        console.error("Error setting up Firebase:", error);
     }
 };
 
-// --- Data Listeners ---
-
-const startDataListeners = () => {
-    if (!isAuthReady || !db) return;
-
-    // 1. Listen for Timetable Data
-    const timetableRef = getPublicDocRef('config', 'timetable');
-    onSnapshot(timetableRef, (docSnap) => {
-        if (docSnap.exists() && docSnap.data().schedule) {
-            // NOTE: Firestore requires simple, flat data structures. Timetable must be JSON serializable.
-            // Assuming timetableData is saved correctly as a simple map of maps of objects.
-            timetableData = docSnap.data().schedule;
-            console.log("Timetable data loaded from Firestore.");
-        } else {
-            timetableData = MOCK_TIMETABLE;
-            console.warn("No timetable found in Firestore. Using mock data.");
-            // Optionally initialize with mock data if needed for the first run
-            // setDoc(timetableRef, { schedule: MOCK_TIMETABLE }, { merge: true });
-        }
-        // Ensure UI is populated after data is loaded
-        populateAllSelects();
-    }, (error) => {
-        console.error("Error fetching timetable:", error);
-        timetableData = MOCK_TIMETABLE; // Fallback
-        populateAllSelects();
-    });
-
-    // 2. Listen for Catchphrases
-    const phrasesRef = getPublicDocRef('config', 'catchphrases');
-    onSnapshot(phrasesRef, (docSnap) => {
-        if (docSnap.exists() && docSnap.data().phrases && Array.isArray(docSnap.data().phrases)) {
-            currentCatchphrases = [...DEFAULT_CATCHPHRASES, ...docSnap.data().phrases];
-            console.log(`Catchphrases loaded: ${currentCatchphrases.length} total.`);
-        } else {
-            currentCatchphrases = DEFAULT_CATCHPHRASES;
-            console.warn("No custom catchphrases found. Using default list.");
-        }
-        updateCatchphraseUI();
-    }, (error) => {
-        console.error("Error fetching catchphrases:", error);
-        currentCatchphrases = DEFAULT_CATCHPHRASES; // Fallback
-        updateCatchphraseUI();
-    });
-
-    // 3. People Data (Assumed stable and can be mock or fetched separately)
-    peopleData = MOCK_PEOPLE;
-    populateWhoSelect();
-};
-
-// --- UI Rendering and Population ---
-
 /**
- * Populates the Day select dropdown based on the selected Week.
- * @param {string} weekSelectId ID of the Week select element.
- * @param {string} daySelectId ID of the Day select element.
+ * Sets up real-time listeners for timetable and catchphrase data.
  */
-const populateDaySelect = (weekSelectId, daySelectId) => {
-    const weekSelect = document.getElementById(weekSelectId);
-    const daySelect = document.getElementById(daySelectId);
+const setupDataListeners = () => {
+    if (!isAuthReady || !userId) {
+        console.warn("Cannot set up listeners: Auth not ready or userId missing.");
+        return;
+    }
 
-    daySelect.innerHTML = '';
-    const selectedWeek = weekSelect.value;
+    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'userTimetables', 'allData');
     
-    if (timetableData[selectedWeek]) {
-        // Get and sort days to ensure correct order
-        const days = Object.keys(timetableData[selectedWeek]).sort((a, b) => {
-            const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-            return dayOrder.indexOf(a) - dayOrder.indexOf(b);
-        });
+    // 1. Timetable Data Listener
+    onSnapshot(docRef, (docSnap) => {
+        if (docSnap.exists()) {
+            timetableData = docSnap.data().timetable || {};
+            console.log("Timetable data updated:", timetableData);
+            
+            // Rebuild peopleData array from the keys of timetableData
+            peopleData = Object.keys(timetableData).map(name => ({
+                id: name.toLowerCase(),
+                name: name,
+                color: `var(--color-${timetableData[name].color})` // Use color from Firestore
+            }));
 
-        days.forEach(day => {
+            // If the person selects were already populated, update them in case people changed
+            if (document.getElementById('whoSelect').options.length > 0) {
+                 populateSelects();
+            }
+
+            // Update UI dependent on this data
+            updateCatchphraseUI();
+            
+        } else {
+            console.log("No initial timetable data found in Firestore. Using mock data.");
+            timetableData = MOCK_TIMETABLE;
+            peopleData = MOCK_PEOPLE;
+        }
+
+        // Initialize selects after data load
+        populateSelects();
+
+    }, (error) => {
+        console.error("Error listening to timetable data:", error);
+        showCustomModal('Data Error', 'Failed to load timetable data. Check console for details.');
+    });
+
+    // 2. Catchphrase Data Listener (Public shared list)
+    const catchphraseRef = doc(db, 'artifacts', appId, 'public', 'data', 'catchphrases', 'allPhrases');
+    
+    onSnapshot(catchphraseRef, (docSnap) => {
+        if (docSnap.exists()) {
+            currentCatchphrases = docSnap.data().phrases || [];
+            console.log("Catchphrases updated:", currentCatchphrases);
+        } else {
+            console.log("No catchphrase data found. Initializing with empty array.");
+            currentCatchphrases = [];
+            // Create the document if it doesn't exist to prevent errors on first write
+            setDoc(catchphraseRef, { phrases: [] }, { merge: true }).catch(err => console.error("Error creating catchphrase doc:", err));
+        }
+        updateCatchphraseUI();
+    }, (error) => {
+        console.error("Error listening to catchphrase data:", error);
+    });
+};
+
+
+// --- UI Population Functions ---
+
+/**
+ * Populates all <select> elements with the loaded people, weeks, and days.
+ */
+const populateSelects = () => {
+    // Check if data is ready
+    if (peopleData.length === 0) return;
+
+    const whoSelects = [document.getElementById('whoSelect'), document.getElementById('whoSelect2')];
+    const whoSelectForToday = document.getElementById('whoSelectToday');
+    const weekSelect1 = document.getElementById('weekSelect1');
+    const weekSelect2 = document.getElementById('weekSelect2');
+    const daySelect1 = document.getElementById('daySelect1');
+    const daySelect2 = document.getElementById('daySelect2');
+
+    // --- Person Selects ---
+    const currentSelectedPerson = whoSelects[0].value || currentWhoSelect;
+    
+    whoSelects.forEach(select => {
+        select.innerHTML = '';
+        peopleData.forEach(person => {
             const option = document.createElement('option');
-            option.value = day;
-            option.textContent = day;
-            daySelect.appendChild(option);
+            option.value = person.id;
+            option.textContent = person.name;
+            option.style.backgroundColor = person.color; // Set background color based on person
+            option.style.color = 'var(--text)';
+            // Select the person currently being viewed in the main section
+            if (person.id === currentSelectedPerson) {
+                option.selected = true;
+            }
+            select.appendChild(option);
         });
-    }
+    });
+
+    // Special case for 'Who has that subject?' select
+    whoSelectForToday.innerHTML = '';
+    whoSelectForToday.appendChild(new Option("Select Person...", "")); // Empty/default option
+    peopleData.forEach(person => {
+        whoSelectForToday.appendChild(new Option(person.name, person.name));
+    });
+
+
+    // Ensure whoSelect in the main section tracks the current view
+    document.getElementById('whoSelect').value = currentSelectedPerson;
+    currentWhoSelect = currentSelectedPerson;
+    updatePersonDisplay(currentSelectedPerson); // Update main display on initial load
+
+    // --- Week Selects ---
+    const weeks = ['Week 1', 'Week 2'];
+    [weekSelect1, weekSelect2].forEach(select => {
+        select.innerHTML = '';
+        weeks.forEach(week => {
+            select.appendChild(new Option(week, week));
+        });
+    });
+
+    // --- Day Selects ---
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+    [daySelect1, daySelect2].forEach(select => {
+        select.innerHTML = '';
+        days.forEach(day => {
+            select.appendChild(new Option(day, day));
+        });
+    });
+
+    // Set today's date defaults
+    setDefaultDay();
 };
 
 /**
- * Populates all Week select dropdowns and triggers the initial Day population.
+ * Sets the default day/week in the select menus based on the current date.
  */
-const populateAllSelects = () => {
-    const weekSelect = document.getElementById('weekSelect');
+const setDefaultDay = () => {
+    const today = new Date();
+    const dayIndex = today.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+
+    const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    let dayName = daysOfWeek[dayIndex];
+
+    // Check if it's a weekend, default to Monday
+    if (dayIndex === 0 || dayIndex === 6) {
+        dayName = 'Monday';
+    }
+
+    // Set the default day in the selects
+    document.getElementById('daySelect1').value = dayName;
+    document.getElementById('daySelect2').value = dayName;
+    
+    // Logic for Week 1 or Week 2 - You'll need external logic for this, 
+    // but for now, we'll default to Week 1 or hardcode an assumption.
+    // Assuming we start with Week 1. In a real app, this would be based on a calendar.
+    const weekSelect1 = document.getElementById('weekSelect1');
     const weekSelect2 = document.getElementById('weekSelect2');
     
-    // Store current values to avoid losing selection on data update
-    const currentWeek1 = weekSelect.value;
-    const currentWeek2 = weekSelect2.value;
+    // A simplistic way to alternate weeks (e.g., based on week number parity)
+    const currentWeekNumber = getWeekNumber(today);
+    const defaultWeek = currentWeekNumber % 2 === 0 ? 'Week 2' : 'Week 1';
     
-    weekSelect.innerHTML = '';
-    weekSelect2.innerHTML = '';
-
-    const weeks = Object.keys(timetableData);
-    if (weeks.length === 0) return;
-
-    // Populate Week Selects
-    weeks.forEach(week => {
-        const textContent = week.replace('Week', 'Week ');
-        const option1 = new Option(textContent, week);
-        const option2 = new Option(textContent, week);
-        weekSelect.appendChild(option1);
-        weekSelect2.appendChild(option2);
-    });
-    
-    // Restore selected values or default to the first week
-    const defaultWeek = weeks[0];
-    weekSelect.value = currentWeek1 && weeks.includes(currentWeek1) ? currentWeek1 : defaultWeek;
-    weekSelect2.value = currentWeek2 && weeks.includes(currentWeek2) ? currentWeek2 : defaultWeek;
-
-    // Set up dynamic listeners for Week changes
-    weekSelect.onchange = () => populateDaySelect('weekSelect', 'daySelect');
-    weekSelect2.onchange = () => populateDaySelect('weekSelect2', 'daySelect2');
-
-    // Initial Day population
-    populateDaySelect('weekSelect', 'daySelect');
-    populateDaySelect('weekSelect2', 'daySelect2');
+    if (weekSelect1.querySelector(`option[value="${defaultWeek}"]`)) {
+        weekSelect1.value = defaultWeek;
+    }
+    if (weekSelect2.querySelector(`option[value="${defaultWeek}"]`)) {
+        weekSelect2.value = defaultWeek;
+    }
 };
 
 /**
- * Populates the Who select dropdown with people names.
+ * Calculates the week number for the year, useful for alternating weeks.
+ * Source: https://stackoverflow.com/a/6117888
+ * @param {Date} d 
+ * @returns {number} The week number.
  */
-const populateWhoSelect = () => {
-    const whoSelect = document.getElementById('whoSelect');
-    whoSelect.innerHTML = '';
+const getWeekNumber = (d) => {
+    // Copy date so don't modify original
+    d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    // Set to nearest Thursday: current date + 4 - current day number
+    // Make Sunday's day number 7
+    d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+    // Get first day of year
+    var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    // Calculate full weeks to nearest Thursday
+    var weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    // Return array of year and week number
+    return weekNo;
+}
 
-    peopleData.forEach(person => {
-        const option = document.createElement('option');
-        option.value = person.id;
-        option.textContent = person.name;
-        whoSelect.appendChild(option);
+
+// --- UI Update Logic ---
+
+/**
+ * Updates the main display with the selected person's timetable for the chosen week and day.
+ */
+const updatePersonDisplay = (personId) => {
+    // 1. Get current selection values
+    const whoSelect = document.getElementById('whoSelect');
+    const weekSelect = document.getElementById('weekSelect1');
+    const daySelect = document.getElementById('daySelect1');
+    const dayDisplay = document.getElementById('dayDisplay');
+
+    // Use the ID passed in or the current select value
+    const selectedPersonId = personId || whoSelect.value;
+    currentWhoSelect = selectedPersonId; // Update global tracking variable
+    
+    const selectedWeek = weekSelect.value;
+    const selectedDay = daySelect.value;
+    
+    // 2. Find selected person's data
+    const personData = peopleData.find(p => p.id === selectedPersonId);
+    
+    if (!personData) {
+        dayDisplay.innerHTML = '<p>Error: Person data not found.</p>';
+        return;
+    }
+
+    const timetable = timetableData[personData.name];
+
+    if (!timetable || !timetable[selectedWeek] || !timetable[selectedWeek][selectedDay]) {
+        dayDisplay.innerHTML = `<p style="text-align:center; color:var(--muted);">Timetable not available for ${personData.name} on ${selectedDay} (${selectedWeek}).</p>`;
+        document.getElementById('personName').textContent = personData.name;
+        document.getElementById('personName').style.color = personData.color;
+        return;
+    }
+
+    // 3. Get the schedule array and person color
+    const schedule = timetable[selectedWeek][selectedDay];
+    const periods = ['Period 1', 'Period 2', 'Period 3', 'Period 4', 'Period 5'];
+    
+    // Update the main header
+    document.getElementById('personName').textContent = personData.name;
+    document.getElementById('personName').style.color = personData.color;
+    
+    // 4. Render the schedule
+    let html = '';
+    schedule.forEach((subject, index) => {
+        const periodName = periods[index];
+        const displaySubject = subject && subject.trim() !== '' ? subject : '— Free Period —';
+        
+        // Determine the class/style for the subject row
+        let subjectClass = 'subject-row';
+        if (displaySubject === '— Free Period —') {
+            subjectClass += ' free-period';
+        }
+        
+        html += `
+            <div class="${subjectClass}">
+                <span class="period-name">${periodName}</span>
+                <span class="subject-name">${displaySubject}</span>
+            </div>
+        `;
     });
-    // Week/Day population for the extra panel is handled by populateAllSelects
+    
+    dayDisplay.innerHTML = html;
 };
 
 /**
- * Updates the randomized catchphrase shown in the header.
+ * Updates the catchphrase display with a random phrase from the list.
  */
 const updateCatchphraseUI = () => {
-    const tagElement = document.getElementById('randomTag');
+    const tag = document.getElementById('catchphraseTag');
     if (currentCatchphrases.length > 0) {
         const randomIndex = Math.floor(Math.random() * currentCatchphrases.length);
-        tagElement.textContent = currentCatchphrases[randomIndex];
+        tag.textContent = currentCatchphrases[randomIndex];
     } else {
-        tagElement.textContent = "No phrases yet!";
+        tag.textContent = 'Add your first iconic phrase!';
     }
-    // Force reflow/reanimation for the fade-in effect
-    tagElement.style.opacity = 0;
-    setTimeout(() => {
-        tagElement.style.opacity = 1;
-    }, 10);
 };
 
-// --- Core Timetable Functions ---
 
-const handleCheck = (mode) => {
-    const week = document.getElementById('weekSelect').value;
-    const day = document.getElementById('daySelect').value;
-    const period = document.getElementById('periodSelect').value;
-    const resultArea = document.getElementById('resultArea');
+// --- Event Handlers (User Actions) ---
 
-    if (!timetableData[week] || !timetableData[week][day] || !timetableData[week][day][period]) {
-        resultArea.innerHTML = `<div class="muted">Timetable entry not found for ${week}, ${day}, Period ${period}.</div>`;
+/**
+ * Handles the logic for the 'Who has that subject?' feature.
+ */
+const handleWhoHasSubject = () => {
+    // 1. Get input values
+    const subjectInput = document.getElementById('subjectInput').value.trim();
+    const weekSelect = document.getElementById('weekSelect2').value;
+    const daySelect = document.getElementById('daySelect2').value;
+
+    if (!subjectInput) {
+        showCustomModal('Missing Subject', 'Please enter the subject name you are looking for.');
         return;
     }
 
-    const lesson = timetableData[week][day][period];
-    const peopleInLessonIds = lesson.people || []; // Ensure it's an array
-    let resultPeople;
-    let title;
+    // 2. Clear previous results
+    const whoResult = document.getElementById('whoResult');
+    whoResult.innerHTML = '';
     
-    if (mode === 'free') {
-        // Find people whose IDs are NOT in the lesson's people list
-        resultPeople = peopleData.filter(p => !peopleInLessonIds.includes(p.id));
-        title = `Free People (Period ${period}):`;
-    } else { // mode === 'lesson'
-        // Find people whose IDs ARE in the lesson's people list
-        resultPeople = peopleData.filter(p => peopleInLessonIds.includes(p.id));
-        title = `Lesson: ${lesson.subject} (Period ${period}):`;
-    }
+    const matchingPeople = [];
 
-    if (resultPeople.length === 0) {
-        resultArea.innerHTML = `<div class="muted" style="padding: 10px 0;">${mode === 'free' ? 'No one is free! Everyone has ' + lesson.subject + '.' : 'No one has this lesson!'}</div>`;
-        return;
-    }
-
-    let html = `<div style="font-weight:600; margin-bottom:12px;">${title}</div>`;
-    resultPeople.forEach(person => {
-        // Find the color variable name based on the ID for consistency
-        const colorVar = person.color;
-        html += `
-            <div class="person" style="background:${colorVar}15;">
-                <div class="swatch" style="background:${colorVar};"></div>
-                <div>${person.name}</div>
-            </div>
-        `;
+    // 3. Iterate through all people and check their timetable
+    Object.keys(timetableData).forEach(personName => {
+        const personTimetable = timetableData[personName];
+        
+        if (personTimetable[weekSelect] && personTimetable[weekSelect][daySelect]) {
+            const schedule = personTimetable[weekSelect][daySelect];
+            
+            schedule.forEach((subject, index) => {
+                // Case-insensitive comparison
+                if (subject.toLowerCase().includes(subjectInput.toLowerCase())) {
+                    const periods = ['Period 1', 'Period 2', 'Period 3', 'Period 4', 'Period 5'];
+                    matchingPeople.push({
+                        name: personName,
+                        period: periods[index],
+                        color: `var(--color-${personTimetable.color})` // Use color from Firestore
+                    });
+                }
+            });
+        }
     });
 
-    resultArea.innerHTML = html;
-};
-
-// --- Extra Features Functions ---
-
-const handleAddPhrase = async () => {
-    const phraseInput = document.getElementById('phraseInput');
-    const newPhrase = phraseInput.value.trim();
-
-    if (newPhrase.length < 3) {
-        // Use custom modal style instead of alert
-        showCustomMessage("Phrase must be at least 3 characters long.", "Error");
-        return;
-    }
-
-    if (currentCatchphrases.includes(newPhrase)) {
-         showCustomMessage(`Phrase "${newPhrase}" already exists!`, "Info");
-         return;
-    }
-
-    try {
-        const phrasesRef = getPublicDocRef('config', 'catchphrases');
-        // Use arrayUnion to safely add the new phrase to the existing array
-        await updateDoc(phrasesRef, {
-            phrases: arrayUnion(newPhrase)
-        });
-        phraseInput.value = '';
-        // Note: The onSnapshot listener will update the UI via currentCatchphrases.
-        showCustomMessage(`Phrase added! Refreshing tag...`, "Success");
-    } catch (error) {
-        if (error.code === 'not-found') {
-             // Document doesn't exist, create it.
-             await setDoc(phrasesRef, { phrases: [newPhrase] });
-             phraseInput.value = '';
-             showCustomMessage(`Phrase added! Refreshing tag...`, "Success");
-        } else {
-            console.error("Error adding phrase:", error);
-            showCustomMessage("Failed to save phrase. Check console for details.", "Error");
-        }
-    }
-};
-
-const handleShowDailySchedule = () => {
-    const whoId = document.getElementById('whoSelect').value;
-    const week = document.getElementById('weekSelect2').value;
-    const day = document.getElementById('daySelect2').value;
-    
-    const person = peopleData.find(p => p.id === whoId);
-    
-    if (!person || !timetableData[week] || !timetableData[week][day]) {
-        showCustomMessage(`Could not retrieve schedule for ${whoId} on ${day} (${week}).`, "Error");
-        return;
-    }
-
-    const dailySchedule = timetableData[week][day];
-    const periods = Object.keys(dailySchedule).sort((a, b) => parseInt(a) - parseInt(b));
-    
-    let scheduleHTML = '';
-
-    periods.forEach(pNum => {
-        const lesson = dailySchedule[pNum];
-        let subject = "Free Period";
-        let isMatch = false;
-
-        if (lesson.people && lesson.people.includes(person.id)) {
-            subject = lesson.subject;
-            isMatch = true;
-        }
-
-        const colorVar = person.color;
-
-        scheduleHTML += `
-            <div class="scheduleRow">
-                <div class="scheduleCell pnum">P${pNum}</div>
-                <div class="scheduleCell subj" style="${isMatch ? `font-weight:600; background: ${colorVar}30; border-color: ${colorVar};` : ''}">
-                    ${subject}
+    // 4. Render results
+    if (matchingPeople.length > 0) {
+        let html = '';
+        matchingPeople.forEach(match => {
+            html += `
+                <div class="result-row" style="border-left: 3px solid ${match.color};">
+                    <span class="result-person">${match.name}</span>
+                    <span class="result-period">${match.period}</span>
                 </div>
+            `;
+        });
+        whoResult.innerHTML = html;
+    } else {
+        whoResult.innerHTML = `<p style="text-align:center; color:var(--muted); padding:10px 0;">No one has "${subjectInput}" on ${daySelect} in ${weekSelect}.</p>`;
+    }
+};
+
+/**
+ * Handles the logic for the 'When is a person free?' feature.
+ */
+const handleWhenIsPersonFree = () => {
+    // 1. Get input values
+    const personName = document.getElementById('whoSelectToday').value;
+    const weekSelect = document.getElementById('weekSelect3').value;
+    const daySelect = document.getElementById('daySelect3').value;
+
+    if (!personName) {
+        showCustomModal('Missing Selection', 'Please select a person.');
+        return;
+    }
+
+    // 2. Clear previous results
+    const freeResult = document.getElementById('freeResult');
+    freeResult.innerHTML = '';
+
+    // 3. Find person's data
+    const personTimetable = timetableData[personName];
+
+    if (!personTimetable || !personTimetable[weekSelect] || !personTimetable[weekSelect][daySelect]) {
+        freeResult.innerHTML = `<p style="text-align:center; color:var(--muted); padding:10px 0;">Timetable data not found for ${personName} on ${daySelect} (${weekSelect}).</p>`;
+        return;
+    }
+
+    // 4. Check for free periods (empty string or contains 'Period')
+    const schedule = personTimetable[weekSelect][daySelect];
+    const periods = ['Period 1', 'Period 2', 'Period 3', 'Period 4', 'Period 5'];
+    const freePeriods = [];
+
+    schedule.forEach((subject, index) => {
+        const normalizedSubject = subject ? subject.trim().toLowerCase() : '';
+        if (normalizedSubject === '' || normalizedSubject.includes('free') || normalizedSubject.includes('period')) {
+            freePeriods.push(periods[index]);
+        }
+    });
+
+    // 5. Render results
+    if (freePeriods.length > 0) {
+        const color = `var(--color-${personTimetable.color})`;
+        let html = '<p style="text-align:center; font-weight:600; margin-bottom:10px;">Free Periods:</p>';
+        
+        freePeriods.forEach(period => {
+            html += `<div class="result-row" style="border-left: 3px solid ${color}; justify-content: center;">
+                        <span class="result-period" style="font-weight:600;">${period}</span>
+                     </div>`;
+        });
+        freeResult.innerHTML = html;
+    } else {
+        freeResult.innerHTML = `<p style="text-align:center; color:var(--muted); padding:10px 0;">${personName} is not free on ${daySelect} in ${weekSelect}.</p>`;
+    }
+};
+
+
+/**
+ * Handles the action of showing the selected person's daily schedule in a modal.
+ */
+const handleShowDailySchedule = () => {
+    // 1. Get input values
+    const selectedPersonId = document.getElementById('whoSelect').value;
+    const selectedWeek = document.getElementById('weekSelect2').value;
+    const selectedDay = document.getElementById('daySelect2').value;
+    
+    // Find selected person's data
+    const personData = peopleData.find(p => p.id === selectedPersonId);
+    if (!personData) return;
+
+    const personName = personData.name;
+    const timetable = timetableData[personName];
+
+    // Check if data is available
+    if (!timetable || !timetable[selectedWeek] || !timetable[selectedWeek][selectedDay]) {
+        showCustomModal('Schedule Not Found', `Timetable not available for ${personName} on ${selectedDay} (${selectedWeek}).`);
+        return;
+    }
+
+    const schedule = timetable[selectedWeek][selectedDay];
+    const periods = ['Period 1', 'Period 2', 'Period 3', 'Period 4', 'Period 5'];
+    const color = personData.color; 
+    
+    // 2. Update Modal Content
+    document.getElementById('scheduleTitle').textContent = `${personName}'s Schedule`;
+    
+    const contentDiv = document.getElementById('modalScheduleContent');
+    contentDiv.innerHTML = '';
+    
+    let html = '';
+    schedule.forEach((subject, index) => {
+        const periodName = periods[index];
+        const displaySubject = subject && subject.trim() !== '' ? subject : '— Free Period —';
+        
+        // Determine the class/style for the subject row
+        let subjectClass = 'schedule-row';
+        if (displaySubject === '— Free Period —') {
+            subjectClass += ' free-period-modal';
+        }
+
+        html += `
+            <div class="${subjectClass}" style="border-left-color: ${color};">
+                <span class="schedule-period">${periodName}</span>
+                <span class="schedule-subject">${displaySubject}</span>
             </div>
         `;
     });
+    
+    contentDiv.innerHTML = html;
 
-    document.getElementById('scheduleTitle').textContent = `${person.name}'s Schedule: ${day}, ${week.replace('Week', 'W')}`;
-    document.getElementById('modalScheduleContent').innerHTML = scheduleHTML;
+    // 3. Show the modal
     document.getElementById('scheduleModalBack').style.display = 'flex';
 };
 
-// --- General UI and Event Handling ---
 
-const showCustomMessage = (message, title) => {
-    const modalBack = document.getElementById('confirmModal');
-    // Existing style setup from HTML styles block
-    const modalHtml = `
-        <div class="modal">
-            <h3 style="margin-top:0;">${title}</h3>
-            <p>${message}</p>
-            <div style="text-align:right;">
-                <button class="btn" style="width:auto; padding:10px 20px; font-size:14px; margin-top:10px;" onclick="document.getElementById('confirmModal').style.display='none'">
-                    Got it
-                </button>
-            </div>
-        </div>
-    `;
-    modalBack.innerHTML = modalHtml;
-    modalBack.style.display = 'flex';
+/**
+ * Handles adding a new catchphrase to the public list in Firestore.
+ */
+const handleAddPhrase = async () => {
+    if (!isAuthReady || !userId) {
+        showCustomModal('Auth Required', 'Please wait for authentication to complete before adding phrases.');
+        return;
+    }
+
+    const phraseInput = document.getElementById('newPhraseInput');
+    const newPhrase = phraseInput.value.trim();
+
+    if (!newPhrase) {
+        showCustomModal('Input Missing', 'Please enter a phrase before clicking Add.');
+        return;
+    }
+    
+    if (newPhrase.length > 50) {
+         showCustomModal('Too Long', 'Phrases must be 50 characters or less.');
+         return;
+    }
+
+    // Check if phrase already exists (case-insensitive)
+    const exists = currentCatchphrases.some(p => p.toLowerCase() === newPhrase.toLowerCase());
+    if (exists) {
+        showCustomModal('Duplicate', 'That phrase is already on the list!');
+        phraseInput.value = '';
+        return;
+    }
+
+    try {
+        const catchphraseRef = doc(db, 'artifacts', appId, 'public', 'data', 'catchphrases', 'allPhrases');
+        
+        // Use arrayUnion to safely add the new phrase without overwriting existing ones
+        await updateDoc(catchphraseRef, {
+            phrases: arrayUnion(newPhrase)
+        });
+        
+        phraseInput.value = '';
+        console.log("Catchphrase added successfully:", newPhrase);
+        // The onSnapshot listener will handle the UI update
+        
+    } catch (error) {
+        console.error("Error adding catchphrase:", error);
+        showCustomModal('Save Failed', 'Could not save the phrase to the database.');
+    }
 };
 
+/**
+ * Initializes all required event listeners.
+ */
 const setupEventListeners = () => {
-    // Core Timetable Buttons
-    document.getElementById('checkBtn').addEventListener('click', () => handleCheck('free'));
-    document.getElementById('lessonBtn').addEventListener('click', () => handleCheck('lesson'));
+    // Timetable View Feature
+    document.getElementById('whoSelect').addEventListener('change', () => updatePersonDisplay());
+    document.getElementById('weekSelect1').addEventListener('change', () => updatePersonDisplay());
+    document.getElementById('daySelect1').addEventListener('change', () => updatePersonDisplay());
 
-    // Extra Features Toggle
-    const extraPanel = document.getElementById('extraPanel');
-    const toggleBtn = document.getElementById('toggleExtra');
-
-    toggleBtn.addEventListener('click', () => {
-        const isOpen = extraPanel.classList.contains('open');
-        if (isOpen) {
-            extraPanel.classList.remove('open');
-            toggleBtn.textContent = 'Show';
-        } else {
-            extraPanel.classList.add('open');
-            toggleBtn.textContent = 'Hide';
-        }
-    });
-
-    // Catchphrase Features
+    // Catchphrase Feature
     document.getElementById('addPhraseBtn').addEventListener('click', handleAddPhrase);
     document.getElementById('refreshTag').addEventListener('click', updateCatchphraseUI);
 
-    // Daily Schedule Feature
+    // Who Has Subject Feature
+    document.getElementById('whoBtn').addEventListener('click', handleWhoHasSubject);
+
+    // When is Free Feature
+    document.getElementById('freeBtn').addEventListener('click', handleWhenIsPersonFree);
+
+
+    // Daily Schedule Feature (using the first section's who select for consistency)
     document.getElementById('whatBtn').addEventListener('click', handleShowDailySchedule);
     document.getElementById('scheduleClose').addEventListener('click', () => {
         document.getElementById('scheduleModalBack').style.display = 'none';
     });
+    document.getElementById('scheduleModalBack').addEventListener('click', (e) => {
+        if (e.target.id === 'scheduleModalBack') {
+            document.getElementById('scheduleModalBack').style.display = 'none';
+        }
+    });
+
 
     // Dark Mode Toggle
     document.getElementById('darkModeToggle').addEventListener('click', toggleDarkMode);
@@ -505,6 +704,9 @@ const setupEventListeners = () => {
 
 // --- Dark Mode Logic ---
 
+/**
+ * Loads the dark mode preference from localStorage or system settings.
+ */
 const loadDarkModePreference = () => {
     // Check if the user has a preference saved, or respects the system preference
     const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -522,6 +724,9 @@ const loadDarkModePreference = () => {
     }
 };
 
+/**
+ * Toggles the dark mode class and saves the preference to localStorage.
+ */
 const toggleDarkMode = () => {
     const isDarkMode = document.body.classList.toggle('dark-mode');
     localStorage.setItem('darkMode', isDarkMode);
