@@ -26,6 +26,10 @@
             --color-pink: #e91e63;
             --color-yellow: #ffeb3b;
             --color-darkgreen: #00796b;
+            
+            /* Custom toggle variables (for the SVG) */
+            --toggle-sun-color: #F2C94C;
+            --toggle-moon-color: #f0f0f0;
         }
 
         /* ** DARK MODE OVERRIDES ** */
@@ -42,7 +46,6 @@
             --secondary-btn-bg: #1c1c1e;
             --secondary-btn-border: #444;
             --soft-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
-            /* Adjust Yellow for better contrast in dark mode */
             --yellow-light: #ffc107;
         }
 
@@ -81,11 +84,10 @@
             position:relative;
         }
         
-        /* UPDATED TAG STYLES: Increased font size to match H1 and slightly adjusted vertical alignment */
+        /* Catchphrase Styles */
         .tag {
             display: inline-block;
             margin-top: 4px;
-            
             color:#333333 !important;
             background:linear-gradient(90deg, var(--yellow-light), rgba(255,248,200,0.95));
             padding: 4px 8px;
@@ -94,10 +96,9 @@
             opacity:0;
             animation: fadeIn 500ms ease forwards;
             font-weight: 600;
-            font-size: 15px; /* INCREASED FONT SIZE to make it bigger */
-            line-height: 1.2; /* Added line-height for consistent spacing */
+            font-size: 15px; 
+            line-height: 1.2; 
             border: 1px solid rgba(0,0,0,0.1);
-            /* Reset animation timing */
             animation-delay: 50ms; 
         }
         
@@ -106,29 +107,84 @@
             to { opacity:1; transform:translateY(0); }
         }
 
-        /* Dark Mode Toggle Button */
-        #darkModeToggle {
+        /* --- START NEW SVG DARK MODE TOGGLE STYLES --- */
+        
+        .dark-mode-toggle-container {
             position: absolute;
             left: 10px;
-            /* Adjusted top to be higher to center with the H1 element */
-            top: 25px; 
+            top: 25px; /* Aligned with H1 center */
             transform: translateY(-50%);
-            font-size: 22px;
-            cursor: pointer;
-            transition: transform 0.1s ease;
             z-index: 10;
         }
-        #darkModeToggle:active {
-            transform: translateY(-50%) scale(0.9);
+
+        .dark-mode-toggle {
+            border: 0;
+            background: transparent;
+            padding: 0;
+            margin: 0;
+            cursor: pointer;
+            line-height: 0; /* Important for alignment */
         }
+
+        .dark-mode-toggle__icon {
+            /* Set a fixed size for the SVG icon */
+            width: 28px; 
+            height: 28px;
+            color: var(--toggle-sun-color); /* Light mode color (Yellow/Sun) */
+            transition: color .2s linear;
+        }
+
+        .dark-mode-toggle__icon:hover {
+            color: #F6C11F;
+        }
+
+        /* State when Dark Mode is ACTIVE (Moon/Night) */
+        body.dark-mode .dark-mode-toggle__icon {
+            color: var(--toggle-moon-color); /* Dark mode color (White/Moon) */
+            opacity: .8;
+        }
+
+        .dark-mode-toggle__icon--moon {
+            color: var(--toggle-moon-color); /* Initial moon color (White/Moon) */
+            opacity: .6;
+            transition: opacity .2s linear, color .2s linear;
+        }
+
+        .dark-mode-toggle__icon--moon:hover {
+            opacity: .8;
+        }
+
+        .dark-mode-toggle__rays {
+            /* Rays visible in light mode */
+            transition: opacity .2s linear .2s;
+        }
+
+        /* Hide rays in dark mode */
+        body.dark-mode .dark-mode-toggle__rays {
+            transition: opacity .2s linear;
+            opacity: 0;
+        }
+
+        /* Initial position of the moon cut-out circle */
+        .dark-mode-toggle__cut-out {
+            transition: transform .5s cubic-bezier(0.54,-0.42, 0.29, 1.3);
+        }
+
+        /* Move the moon cut-out to show the moon phase */
+        body.dark-mode .dark-mode-toggle__cut-out {
+            transform: translateX(-30%);
+            transition: transform .5s cubic-bezier(0.21, 0.17, 0.43, 1.43);
+        }
+        
+        /* --- END NEW SVG DARK MODE TOGGLE STYLES --- */
+
 
         .card { background:var(--card); border-radius:var(--radius); padding:14px; box-shadow:var(--soft-shadow); margin-bottom:12px; transition: background 0.3s, box-shadow 0.3s; }
         label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px; transition: color 0.3s;}
         
         /* Form Elements */
         select, button, input[type="text"] {
-            width:100%; /* Ensure full width */
-            padding:12px 14px; border-radius:12px; border:2px solid var(--input-border); outline:none; font-size:15px;
+            width:100%; padding:12px 14px; border-radius:12px; border:2px solid var(--input-border); outline:none; font-size:15px;
             background:var(--input-bg); color:var(--text); box-sizing:border-box;
             min-width: 0; transition: background 0.3s, border-color 0.3s, color 0.3s;
             margin-bottom: 0; 
@@ -229,14 +285,41 @@
 <body>
     <div class="wrap">
         <div class="title card">
-            <!-- Dark Mode Toggle is positioned absolutely relative to .title -->
-            <!-- We changed 'top: 50%' to 'top: 25px' in CSS to align it with the h1 text's center. -->
-            <div id="darkModeToggle" role="button" aria-label="Toggle Dark Mode">☀️</div>
+            <!-- NEW Animated SVG Dark Mode Switch Container -->
+            <div class="dark-mode-toggle-container">
+                <button id="darkModeToggle" class="dark-mode-toggle" aria-label="Toggle Dark Mode">
+                    <svg class="dark-mode-toggle__icon" width="24" height="24" viewBox="0 0 24 24">
+                        <defs>
+                            <mask id="mask">
+                                <rect x="0" y="0" width="100%" height="100%" fill="white"/>
+                                <circle class="dark-mode-toggle__cut-out" r="6" cx="24" cy="10" fill="black" />
+                            </mask>
+                        </defs>
+                        <!-- Center circle (Sun or Moon) -->
+                        <circle class="dark-mode-toggle__center-circle" r="6" cx="12" cy="12" fill="currentColor" mask="url(#mask)"/>
+                        
+                        <!-- Rays (Light mode) -->
+                        <g class="dark-mode-toggle__rays" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                            <line x1="12" x2="12" y1="3" y2="1" />
+                            <line x1="21" x2="23" y1="12" y2="12" />
+                            <line x1="12" x2="12" y1="21" y2="23" />
+                            <line x1="1" x2="3" y1="12" y2="12" />
+                        </g>
+                        <!-- Diagonal Rays (Light mode) -->
+                        <g class="dark-mode-toggle__rays" stroke="currentColor" stroke-width="2" stroke-linecap="round" transform="rotate(45 12 12)">
+                            <line x1="12" x2="12" y1="3" y2="1" />
+                            <line x1="21" x2="23" y1="12" y2="12" />
+                            <line x1="12" x2="12" y1="21" y2="23" />
+                            <line x1="1" x2="3" y1="12" y2="12" />
+                        </g>
+                    </svg>
+                </button>
+            </div>
             
             <!-- Main Title is an H1 -->
             <h1 style="font-size:28px; margin: 0 0 4px 0; font-weight:700;">Fuckass Timetable</h1>
             
-            <!-- Catchphrase is directly below the title. Font size adjusted in CSS to match H1 better. -->
+            <!-- Catchphrase is directly below the title. -->
             <div id="randomTag" class="tag" aria-hidden="true"></div>
         </div>
 
@@ -315,6 +398,41 @@
                 </div>
         </div>
     </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const body = document.body;
+    const toggleButton = document.getElementById('darkModeToggle');
+
+    // 1. Initial State Check (Using the 'dark-mode' class already in use)
+    let isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    // Set initial class based on OS preference
+    if (isDarkMode) {
+        body.classList.add('dark-mode');
+        // Add the moon class to the SVG to set initial visual state
+        toggleButton.firstElementChild.classList.add('dark-mode-toggle__icon--moon');
+    }
+    
+    // 2. Listener for Toggle
+    toggleButton.addEventListener('click', (e) => {
+        // Toggle the 'dark-mode' class on the body
+        body.classList.toggle('dark-mode');
+        
+        // Toggle the SVG class that controls the moon phase animation
+        e.currentTarget.firstElementChild.classList.toggle('dark-mode-toggle__icon--moon');
+    });
+    
+    // Helper function for the extra panel toggle
+    const extraPanel = document.getElementById('extraPanel');
+    const toggleExtraBtn = document.getElementById('toggleExtra');
+
+    toggleExtraBtn.addEventListener('click', () => {
+        const isOpen = extraPanel.classList.toggle('open');
+        toggleExtraBtn.textContent = isOpen ? 'Hide' : 'Show';
+    });
+});
+</script>
 
 <script src="script.js"></script>
 </body>
