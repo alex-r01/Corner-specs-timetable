@@ -138,19 +138,9 @@
             color: #F6C11F;
         }
 
-        /* State when Dark Mode is ACTIVE (Moon/Night) */
+        /* State when Dark Mode is ACTIVE (Moon/Night). This drives the color change. */
         body.dark-mode .dark-mode-toggle__icon {
             color: var(--toggle-moon-color); /* Dark mode color (White/Moon) */
-            opacity: .8;
-        }
-
-        .dark-mode-toggle__icon--moon {
-            color: var(--toggle-moon-color); /* Initial moon color (White/Moon) */
-            opacity: .6;
-            transition: opacity .2s linear, color .2s linear;
-        }
-
-        .dark-mode-toggle__icon--moon:hover {
             opacity: .8;
         }
 
@@ -409,18 +399,14 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Set initial class based on OS preference
     if (isDarkMode) {
+        // This is the only class needed to trigger all dark mode styles and the icon animation.
         body.classList.add('dark-mode');
-        // Add the moon class to the SVG to set initial visual state
-        toggleButton.firstElementChild.classList.add('dark-mode-toggle__icon--moon');
     }
     
     // 2. Listener for Toggle
-    toggleButton.addEventListener('click', (e) => {
-        // Toggle the 'dark-mode' class on the body
+    toggleButton.addEventListener('click', () => {
+        // Toggle the 'dark-mode' class on the body. This single action drives all visual changes.
         body.classList.toggle('dark-mode');
-        
-        // Toggle the SVG class that controls the moon phase animation
-        e.currentTarget.firstElementChild.classList.toggle('dark-mode-toggle__icon--moon');
     });
     
     // Helper function for the extra panel toggle
