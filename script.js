@@ -32,7 +32,7 @@ const elements = {
 
 let timetableData = null;
 let catchphrases = [];
-const FREE_WORDS = ['free', 'period 4', 'period 5', '']; // Use these to detect a 'free' period
+const FREE_WORDS = ['free', 'period 4', 'period 5', '']; // Identifiers for free periods from the sheet data
 
 // --- THEME LOGIC ---
 
@@ -51,7 +51,8 @@ function applyTheme(isDark) {
 
 function loadTheme() {
     const savedTheme = localStorage.getItem(storageKey);
-    const prefersDark = savedTheme === 'dark' || (savedTheme === null && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    // Fixed syntax error here: removed extra closing parenthesis
+    const prefersDark = savedTheme === 'dark' || (savedTheme === null && window.matchMedia('(prefers-color-scheme: dark)').matches);
     applyTheme(prefersDark);
 }
 
@@ -76,6 +77,7 @@ async function fetchData(url) {
         return response.json();
     } catch (e) {
         console.error(e);
+        // Show user-friendly error message
         showError(`Error loading data from ${url}. Please ensure 'data/${url.split('/').pop()}' exists.`);
         return null;
     }
@@ -92,7 +94,8 @@ async function init() {
     catchphrases = cData || []; // Use empty array if loading fails
 
     if (!timetableData || !timetableData.metadata) {
-        showError("Critical data (timetable.json) failed to load or is corrupt.");
+        // If critical data fails, stop initialization
+        showError("Critical data (timetable.json) failed to load or is corrupt. Check Console for details.");
         return;
     }
     
@@ -108,7 +111,6 @@ async function init() {
 
 function populateSelects(metadata) {
     const { weeks, days } = metadata;
-    // Filter out the metadata key to get only the names
     const people = Object.keys(timetableData).filter(key => key !== 'metadata');
     
     const selects = [
@@ -175,7 +177,6 @@ function checkAvailability(mode) {
         if (isFree(lesson)) {
             results.free.push({ name, color });
         } else {
-            // Use the exact subject name from the sheet data
             if (!results.lessons[lesson]) {
                 results.lessons[lesson] = [];
             }
@@ -252,19 +253,16 @@ function showMyDay() {
     });
 }
 
-// NOTE: Since this is a static site, we cannot *add* phrases permanently.
-// We simulate the action for the user's experience.
 function tryAddPhrase() {
     const txt = elements.phraseInput.value.trim();
     if (!txt) return showConfirm('Type a phrase first', null, 'OK');
 
     showConfirm(`Are you sure you want to add: "${txt}"?`, () => {
-        // --- SIMULATED RESPONSE ---
+        // SIMULATED RESPONSE for static site
         catchphrases.push(txt);
         elements.phraseInput.value = '';
         loadRandomTag();
         showConfirm('Phrase added temporarily! (This is a static site, so it cannot save permanently. The phrase will be lost on refresh.)', null, 'OK');
-        // --- END SIMULATED RESPONSE ---
     }, 'Yes, add', 'Cancel');
 }
 
@@ -366,5 +364,8 @@ function setupEventListeners() {
     });
 }
 
-// Start the application
-window.onload = init;
+// Ensure the theme is loaded immediately upon script execution
+loadTheme(); 
+
+// Start the application after the document content is fully loaded
+window.addEventListener('load', init);
