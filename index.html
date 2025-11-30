@@ -398,11 +398,28 @@
 <!-- The script that handles all the Firebase data, button clicks, and logic -->
 <script type="module">
 // Firebase Imports (MUST use cdn links provided by the environment)
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, onSnapshot, collection, updateDoc, arrayUnion, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyCGWrV3J7mzQOP5fue1TR60ULApGHk7ou0",
+  authDomain: "fuckass-database.firebaseapp.com",
+  databaseURL: "https://fuckass-database-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "fuckass-database",
+  storageBucket: "fuckass-database.firebasestorage.app",
+  messagingSenderId: "9659226584",
+  appId: "1:9659226584:web:d061b9009f6c85ba75faad",
+  measurementId: "G-K706WH996X"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 // Global Variables
 let db;
 let auth;
