@@ -238,7 +238,7 @@
 
 <script>
   // 🛑🛑🛑 CRITICAL EDIT: PASTE THE WEB APP URL HERE
-  const API_ENDPOINT = 'https://script.google.com/macros/s/AKfycbw4zLx2OuUgsfOCnC4lIHewBxHntLhRa1w4ASqbjc_5nnOM7D0qf33RBB-nZOps4HLTbw/exec'; 
+  const API_ENDPOINT = 'https://script.google.com/macros/s/AKfycbz3Drz1CRWek8MYH5rD1G-kKhdRs28xu4SRJstDkS8JeH-K_0tZlLlq45CSa7mN2yXdQw/exec'; 
   
   let cfg = null;
 
@@ -246,7 +246,7 @@
    * Universal function to call the Apps Script API via fetch.
    */
   async function callApi(functionName, args = []) {
-    if (API_ENDPOINT === 'https://script.google.com/macros/s/AKfycbw4zLx2OuUgsfOCnC4lIHewBxHntLhRa1w4ASqbjc_5nnOM7D0qf33RBB-nZOps4HLTbw/exec') {
+    if (API_ENDPOINT === 'https://script.google.com/macros/s/AKfycbz3Drz1CRWek8MYH5rD1G-kKhdRs28xu4SRJstDkS8JeH-K_0tZlLlq45CSa7mN2yXdQw/exec') {
         showError("API Endpoint not set. Functionality disabled.");
         throw new Error("API URL missing. Please deploy Apps Script and set API_ENDPOINT.");
     }
