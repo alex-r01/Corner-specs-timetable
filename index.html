@@ -26,10 +26,6 @@
             --color-pink: #e91e63;
             --color-yellow: #ffeb3b;
             --color-darkgreen: #00796b;
-            
-            /* Custom toggle variables (for the SVG) */
-            --toggle-sun-color: #F2C94C;
-            --toggle-moon-color: #f0f0f0;
         }
 
         /* ** DARK MODE OVERRIDES ** */
@@ -107,7 +103,7 @@
             to { opacity:1; transform:translateY(0); }
         }
 
-        /* --- START NEW SVG DARK MODE TOGGLE STYLES --- */
+        /* --- START NEW ANIMATED DARK MODE TOGGLE STYLES --- */
         
         .dark-mode-toggle-container {
             position: absolute;
@@ -123,50 +119,46 @@
             padding: 0;
             margin: 0;
             cursor: pointer;
-            line-height: 0; /* Important for alignment */
-        }
-
-        .dark-mode-toggle__icon {
-            /* Set a fixed size for the SVG icon */
-            width: 28px; 
+            line-height: 0; 
+            width: 28px;
             height: 28px;
-            color: var(--toggle-sun-color); /* Light mode color (Yellow/Sun) */
+        }
+        
+        /* Sun color in light mode, Moon color in dark mode (driven by currentColor) */
+        .dark-mode-toggle__icon {
+            width: 28px;
+            height: 28px;
+            color: var(--yellow-light); 
             transition: color .2s linear;
         }
 
-        .dark-mode-toggle__icon:hover {
-            color: #F6C11F;
-        }
-
-        /* State when Dark Mode is ACTIVE (Moon/Night). This drives the color change. */
+        /* Icon color switch for dark mode */
         body.dark-mode .dark-mode-toggle__icon {
-            color: var(--toggle-moon-color); /* Dark mode color (White/Moon) */
-            opacity: .8;
+            color: var(--text); /* Changes to off-white/white in dark mode */
+            opacity: 0.9;
         }
-
+        
         .dark-mode-toggle__rays {
-            /* Rays visible in light mode */
             transition: opacity .2s linear .2s;
         }
 
-        /* Hide rays in dark mode */
+        /* Rays disappear in dark mode */
         body.dark-mode .dark-mode-toggle__rays {
             transition: opacity .2s linear;
             opacity: 0;
         }
 
-        /* Initial position of the moon cut-out circle */
         .dark-mode-toggle__cut-out {
             transition: transform .5s cubic-bezier(0.54,-0.42, 0.29, 1.3);
         }
 
-        /* Move the moon cut-out to show the moon phase */
+        /* Moon phase animation */
         body.dark-mode .dark-mode-toggle__cut-out {
             transform: translateX(-30%);
             transition: transform .5s cubic-bezier(0.21, 0.17, 0.43, 1.43);
         }
         
-        /* --- END NEW SVG DARK MODE TOGGLE STYLES --- */
+        /* --- END NEW ANIMATED DARK MODE TOGGLE STYLES --- */
 
 
         .card { background:var(--card); border-radius:var(--radius); padding:14px; box-shadow:var(--soft-shadow); margin-bottom:12px; transition: background 0.3s, box-shadow 0.3s; }
@@ -275,27 +267,28 @@
 <body>
     <div class="wrap">
         <div class="title card">
-            <!-- NEW Animated SVG Dark Mode Switch Container -->
+            <!-- NEW Animated Dark Mode Switch Container -->
             <div class="dark-mode-toggle-container">
                 <button id="darkModeToggle" class="dark-mode-toggle" aria-label="Toggle Dark Mode">
-                    <svg class="dark-mode-toggle__icon" width="24" height="24" viewBox="0 0 24 24">
+                    <svg class="dark-mode-toggle__icon" width="28" height="28" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <defs>
                             <mask id="mask">
-                                <rect x="0" y="0" width="100%" height="100%" fill="white"/>
+                                <rect x="0" y="0" width="100%" height="100%" fill="white" />
+                                <!-- This cut-out circle slides to create the crescent moon effect -->
                                 <circle class="dark-mode-toggle__cut-out" r="6" cx="24" cy="10" fill="black" />
                             </mask>
                         </defs>
-                        <!-- Center circle (Sun or Moon) -->
-                        <circle class="dark-mode-toggle__center-circle" r="6" cx="12" cy="12" fill="currentColor" mask="url(#mask)"/>
+                        <!-- Main circle (Sun/Moon base) -->
+                        <circle class="dark-mode-toggle__center-circle" r="6" cx="12" cy="12" fill="currentColor" mask="url(#mask)" />
                         
-                        <!-- Rays (Light mode) -->
+                        <!-- Rays Group 1 -->
                         <g class="dark-mode-toggle__rays" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                             <line x1="12" x2="12" y1="3" y2="1" />
                             <line x1="21" x2="23" y1="12" y2="12" />
                             <line x1="12" x2="12" y1="21" y2="23" />
                             <line x1="1" x2="3" y1="12" y2="12" />
                         </g>
-                        <!-- Diagonal Rays (Light mode) -->
+                        <!-- Rays Group 2 (Rotated 45 degrees for diagonals) -->
                         <g class="dark-mode-toggle__rays" stroke="currentColor" stroke-width="2" stroke-linecap="round" transform="rotate(45 12 12)">
                             <line x1="12" x2="12" y1="3" y2="1" />
                             <line x1="21" x2="23" y1="12" y2="12" />
@@ -395,9 +388,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const toggleButton = document.getElementById('darkModeToggle');
 
     // 1. Initial State Check (Using the 'dark-mode' class already in use)
+    // Check for OS preference or default to light if not found
     let isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
     
-    // Set initial class based on OS preference
+    // Set initial class based on preference
     if (isDarkMode) {
         // This is the only class needed to trigger all dark mode styles and the icon animation.
         body.classList.add('dark-mode');
@@ -405,7 +399,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // 2. Listener for Toggle
     toggleButton.addEventListener('click', () => {
-        // Toggle the 'dark-mode' class on the body. This single action drives all visual changes.
+        // Toggle the 'dark-mode' class on the body. This single action drives all visual changes, including the new SVG animation.
         body.classList.toggle('dark-mode');
     });
     
