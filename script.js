@@ -1,374 +1,453 @@
-// --- CONFIGURATION AND UI ELEMENTS ---
-const elements = {
-    // Selectors
-    weekSelect: document.getElementById('weekSelect'),
-    daySelect: document.getElementById('daySelect'),
-    periodSelect: document.getElementById('periodSelect'),
-    whoSelect: document.getElementById('whoSelect'),
-    weekSelect2: document.getElementById('weekSelect2'),
-    daySelect2: document.getElementById('daySelect2'),
+// Firebase Imports (MUST use cdn links provided by the environment)
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getFirestore, doc, setDoc, onSnapshot, collection, addDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    // Buttons
-    checkBtn: document.getElementById('checkBtn'),
-    lessonBtn: document.getElementById('lessonBtn'),
-    toggleExtra: document.getElementById('toggleExtra'),
-    addPhraseBtn: document.getElementById('addPhraseBtn'),
-    refreshTag: document.getElementById('refreshTag'),
-    whatBtn: document.getElementById('whatBtn'),
-    
-    // Panels & Results
-    randomTag: document.getElementById('randomTag'),
-    extraPanel: document.getElementById('extraPanel'),
-    resultArea: document.getElementById('resultArea'),
-    phraseInput: document.getElementById('phraseInput'),
+// Global Variables
+let db;
+let auth;
+let userId = null;
+let isAuthReady = false;
+let peopleData = [];
+let timetableData = {};
+let currentCatchphrases = [];
 
-    // Modals
-    scheduleModalBack: document.getElementById('scheduleModalBack'),
-    scheduleTitle: document.getElementById('scheduleTitle'),
-    modalScheduleContent: document.getElementById('modalScheduleContent'),
-    scheduleClose: document.getElementById('scheduleClose'),
-    darkModeToggle: document.getElementById('darkModeToggle')
+// --- Configuration and Initialization ---
+
+// Mandatory Canvas environment variables
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+// Mock Data (Used until Firestore data loads)
+const MOCK_PEOPLE = [
+    { id: 'alessandro', name: 'Alessandro', color: 'var(--color-red)' },
+    { id: 'liam', name: 'Liam', color: 'var(--color-blue)' },
+    { id: 'eliza', name: 'Eliza', color: 'var(--color-pink)' },
+    { id: 'oscar', name: 'Oscar', color: 'var(--color-yellow)' },
+    { id: 'sara', name: 'Sara', color: 'var(--color-darkgreen)' },
+];
+
+const MOCK_TIMETABLE = {
+    WeekA: {
+        Monday: {
+            1: { subject: 'Math', people: ['alessandro', 'liam'] },
+            2: { subject: 'English', people: ['eliza', 'sara'] },
+            3: { subject: 'Free', people: [] },
+            4: { subject: 'Science', people: ['oscar', 'alessandro'] },
+            5: { subject: 'PE', people: ['liam', 'eliza', 'sara', 'oscar'] },
+        },
+        Tuesday: {
+            1: { subject: 'History', people: ['eliza'] },
+            2: { subject: 'Free', people: [] },
+            3: { subject: 'Art', people: ['alessandro', 'oscar'] },
+            4: { subject: 'Math', people: ['liam', 'sara'] },
+            5: { subject: 'Free', people: [] },
+        },
+        // ... more days/weeks
+    },
+    WeekB: {
+        Monday: {
+            1: { subject: 'Science', people: ['alessandro', 'eliza', 'oscar'] },
+            2: { subject: 'Free', people: [] },
+            3: { subject: 'Geo', people: ['liam', 'sara'] },
+            4: { subject: 'Free', people: [] },
+            5: { subject: 'English', people: ['alessandro', 'liam', 'eliza', 'oscar', 'sara'] },
+        },
+        // ... more days
+    }
+    // Note: In a real app, this data would be fetched from Firestore.
 };
 
-let timetableData = null;
-let catchphrases = [];
-// Identifiers for free periods from the sheet data, including blank fields.
-const FREE_WORDS = ['free', 'period 4', 'period 5', '']; 
+const DEFAULT_CATCHPHRASES = [
+    "Fuckass Friday!",
+    "Timetable Takedown!",
+    "Is anyone free, please?",
+    "Schedule Sucks.",
+    "Bored of Free Periods!",
+    "Lesson Loadout.",
+];
 
-// --- THEME LOGIC ---
+// Utility: Gets Firestore document reference for public data
+const getPublicDocRef = (collectionName, documentId) => {
+    return doc(db, 'artifacts', appId, 'public', 'data', collectionName, documentId);
+};
 
-const body = document.body;
-const storageKey = 'timetable-theme';
+// Utility: Gets Firestore collection reference for public data
+const getPublicCollectionRef = (collectionName) => {
+    return collection(db, 'artifacts', appId, 'public', 'data', collectionName);
+};
 
-function applyTheme(isDark) {
-    // CRITICAL FIX: Removed elements.darkModeToggle.textContent = '...' lines.
-    // Setting textContent destroys the SVG icon needed for the animation.
-    // Toggling the body class is sufficient, as CSS handles the icon change.
-    if (isDark) {
-        body.classList.add('dark-mode');
-    } else {
-        body.classList.remove('dark-mode');
-    }
-}
+// --- Firebase and Auth Setup ---
 
-function loadTheme() {
-    const savedTheme = localStorage.getItem(storageKey);
-    const prefersDark = savedTheme === 'dark' || (savedTheme === null && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    applyTheme(prefersDark);
-}
+const setupFirebase = async () => {
+    if (!firebaseConfig) {
+        console.error("Firebase configuration is missing.");
+        return;
+    }
+    try {
+        const app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+        auth = getAuth(app);
+        setLogLevel('debug'); // Enable detailed logging
 
-function toggleTheme() {
-    const isDark = body.classList.contains('dark-mode');
-    const newMode = isDark ? 'light' : 'dark';
-    applyTheme(newMode === 'dark');
-    localStorage.setItem(storageKey, newMode);
-}
+        if (initialAuthToken) {
+            await signInWithCustomToken(auth, initialAuthToken);
+        } else {
+            await signInAnonymously(auth);
+        }
 
-// --- DATA INITIALIZATION ---
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                userId = user.uid;
+                isAuthReady = true;
+                console.log("User authenticated:", userId);
+                startDataListeners();
+            } else {
+                console.log("Authentication failed or logged out.");
+                isAuthReady = true; // Still mark as ready to prevent infinite loading state
+            }
+        });
 
-/**
- * Fetches JSON data from local files.
- */
-async function fetchData(url) {
-    try {
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`Failed to load ${url}: ${response.statusText}`);
-        }
-        return response.json();
-    } catch (e) {
-        console.error(e);
-        // Show user-friendly error message
-        showError(`Error loading data from ${url}. Please ensure 'data/${url.split('/').pop()}' exists.`);
-        return null;
-    }
-}
+    } catch (error) {
+        console.error("Error during Firebase setup:", error);
+    }
+};
 
-async function init() {
-    // 1. Load data
-    const [tData, cData] = await Promise.all([
-        fetchData('data/timetable.json'),
-        fetchData('data/catchphrases.json')
-    ]);
-    
-    timetableData = tData;
-    catchphrases = cData || []; // Use empty array if loading fails
+// --- Data Listeners ---
 
-    if (!timetableData || !timetableData.metadata) {
-        // If critical data fails, stop initialization
-        showError("Critical data (timetable.json) failed to load or is corrupt. Check Console for details.");
-        return;
-    }
-    
-    // 2. Populate Selects
-    populateSelects(timetableData.metadata);
+const startDataListeners = () => {
+    if (!isAuthReady || !db) return;
 
-    // 3. Set Random Tag
-    loadRandomTag();
+    // 1. Listen for Timetable Data
+    const timetableRef = getPublicDocRef('config', 'timetable');
+    onSnapshot(timetableRef, (docSnap) => {
+        if (docSnap.exists() && docSnap.data().schedule) {
+            timetableData = docSnap.data().schedule;
+            console.log("Timetable data loaded from Firestore.");
+        } else {
+            timetableData = MOCK_TIMETABLE;
+            console.warn("No timetable found in Firestore. Using mock data.");
+            // Optionally initialize with mock data if needed
+            // setDoc(timetableRef, { schedule: MOCK_TIMETABLE }, { merge: true });
+        }
+        // Ensure UI is populated after data is loaded
+        populateSelects();
+    }, (error) => {
+        console.error("Error fetching timetable:", error);
+        timetableData = MOCK_TIMETABLE; // Fallback
+        populateSelects();
+    });
 
-    // 4. Set Event Listeners
-    setupEventListeners();
-}
+    // 2. Listen for Catchphrases
+    const phrasesRef = getPublicDocRef('config', 'catchphrases');
+    onSnapshot(phrasesRef, (docSnap) => {
+        if (docSnap.exists() && docSnap.data().phrases) {
+            currentCatchphrases = [...DEFAULT_CATCHPHRASES, ...docSnap.data().phrases];
+            console.log(`Catchphrases loaded: ${currentCatchphrases.length} total.`);
+        } else {
+            currentCatchphrases = DEFAULT_CATCHPHRASES;
+            console.warn("No custom catchphrases found. Using default list.");
+        }
+        updateCatchphraseUI();
+    }, (error) => {
+        console.error("Error fetching catchphrases:", error);
+        currentCatchphrases = DEFAULT_CATCHPHRASES; // Fallback
+        updateCatchphraseUI();
+    });
 
-function populateSelects(metadata) {
-    const { weeks, days } = metadata;
-    const people = Object.keys(timetableData).filter(key => key !== 'metadata');
-    
-    const selects = [
-        { el: elements.weekSelect, data: weeks, defaultVal: weeks[0] },
-        { el: elements.weekSelect2, data: weeks, defaultVal: weeks[0] },
-        { el: elements.daySelect, data: days, defaultVal: days[0] },
-        { el: elements.daySelect2, data: days, defaultVal: days[0] }
-    ];
+    // 3. People Data (Assumed stable and can be mock or fetched separately)
+    peopleData = MOCK_PEOPLE;
+    populateWhoSelect();
+};
 
-    selects.forEach(({ el, data, defaultVal }) => {
-        el.innerHTML = data.map(item => `<option value="${item}">${item}</option>`).join('');
-        if (defaultVal) el.value = defaultVal;
-    });
+// --- UI Rendering and Population ---
 
-    elements.whoSelect.innerHTML = people.map(p => `<option value="${p}">${p}</option>`).join('');
-    if (people.length) elements.whoSelect.value = people[0];
-}
+const populateSelects = () => {
+    const weekSelect = document.getElementById('weekSelect');
+    const daySelect = document.getElementById('daySelect');
+    const periodSelect = document.getElementById('periodSelect');
+    
+    // Clear existing options, but keep the Period options as they are hardcoded
+    weekSelect.innerHTML = '';
+    daySelect.innerHTML = '';
+    
+    const weeks = Object.keys(timetableData);
+    if (weeks.length === 0) return;
 
-// --- FEATURE LOGIC ---
+    // Populate Week Select
+    weeks.forEach(week => {
+        const option = document.createElement('option');
+        option.value = week;
+        option.textContent = week.replace('Week', 'Week ');
+        weekSelect.appendChild(option);
+    });
 
-function loadRandomTag() {
-    if (catchphrases.length === 0) {
-        elements.randomTag.style.display = 'none';
-        return;
-    }
-    const randomIndex = Math.floor(Math.random() * catchphrases.length);
-    elements.randomTag.textContent = catchphrases[randomIndex];
-    elements.randomTag.style.display = 'block';
-}
+    // Populate Day Select based on the first selected week
+    const currentWeek = weekSelect.value;
+    if (timetableData[currentWeek]) {
+        const days = Object.keys(timetableData[currentWeek]);
+        days.forEach(day => {
+            const option = document.createElement('option');
+            option.value = day;
+            option.textContent = day;
+            daySelect.appendChild(option);
+        });
+    }
 
-function toggleExtraPanel() {
-    elements.extraPanel.classList.toggle('open');
-    elements.toggleExtra.textContent = elements.extraPanel.classList.contains('open') ? 'Hide' : 'Show';
-}
+    // Set up change listener for dynamic day population (if multiple weeks were present)
+    weekSelect.addEventListener('change', populateSelects);
+};
 
-function isFree(lesson) {
-    return FREE_WORDS.includes(lesson.toLowerCase().trim());
-}
+const populateWhoSelect = () => {
+    const whoSelect = document.getElementById('whoSelect');
+    const weekSelect2 = document.getElementById('weekSelect2');
+    const daySelect2 = document.getElementById('daySelect2');
 
-function checkAvailability(mode) {
-    const week = elements.weekSelect.value;
-    const day = elements.daySelect.value;
-    const period = parseInt(elements.periodSelect.value, 10);
-    
-    if (!week || !day || isNaN(period)) {
-        return showError("Please select a Week, Day, and Period.");
-    }
-    
-    const results = { free: [], lessons: {} };
-    const peopleNames = Object.keys(timetableData).filter(key => key !== 'metadata');
-    
-    peopleNames.forEach(name => {
-        const personData = timetableData[name];
-        
-        if (!personData[week] || !personData[week][day] || personData[week][day].length < period) {
-             console.warn(`Missing data for ${name} on ${week}, ${day}, Period ${period}`);
-             return;
-        }
+    whoSelect.innerHTML = '';
+    weekSelect2.innerHTML = '';
+    daySelect2.innerHTML = '';
 
-        const lessonRaw = personData[week][day][period - 1];
-        const lesson = (lessonRaw || '').toString().trim();
-        const color = personData.color;
+    peopleData.forEach(person => {
+        const option = document.createElement('option');
+        option.value = person.id;
+        option.textContent = person.name;
+        whoSelect.appendChild(option);
+    });
 
-        if (isFree(lesson)) {
-            results.free.push({ name, color });
-        } else {
-            if (!results.lessons[lesson]) {
-                results.lessons[lesson] = [];
-            }
-            results.lessons[lesson].push({ name, color });
-        }
-    });
-    
-    // Render based on mode
-    if (mode === 'free') {
-        renderAvailability(results);
-    } else { // mode === 'lesson'
-        const lessonGroups = Object.keys(results.lessons).map(subject => ({
-            subject: subject,
-            people: results.lessons[subject]
-        }));
-        renderWhoHasLesson(lessonGroups);
-    }
-}
+    // Populate Week/Day for the "What do I have today?" feature using existing data
+    const weeks = Object.keys(timetableData);
+    if (weeks.length === 0) return;
 
-function showMyDay() {
-    const who = elements.whoSelect.value;
-    const week = elements.weekSelect2.value;
-    const day = elements.daySelect2.value;
-    
-    if (!who || !week || !day) {
-        return showConfirm("Please select who you are, the Week, and the Day.", null, 'OK');
-    }
+    weeks.forEach(week => {
+        const option = document.createElement('option');
+        option.value = week;
+        option.textContent = week.replace('Week', 'Week ');
+        weekSelect2.appendChild(option);
+    });
 
-    const content = elements.modalScheduleContent;
-    elements.scheduleTitle.textContent = `${who}'s Schedule for ${week}, ${day}`;
-    showScheduleModal();
+    if (timetableData[weeks[0]]) {
+        Object.keys(timetableData[weeks[0]]).forEach(day => {
+            const option = document.createElement('option');
+            option.value = day;
+            option.textContent = day;
+            daySelect2.appendChild(option);
+        });
+    }
+};
 
-    const personData = timetableData[who];
+const updateCatchphraseUI = () => {
+    const tagElement = document.getElementById('randomTag');
+    if (currentCatchphrases.length > 0) {
+        const randomIndex = Math.floor(Math.random() * currentCatchphrases.length);
+        tagElement.textContent = currentCatchphrases[randomIndex];
+    } else {
+        tagElement.textContent = "No phrases yet!";
+    }
+    // Force reflow/reanimation
+    tagElement.style.opacity = 0;
+    setTimeout(() => {
+        tagElement.style.opacity = 1;
+        // The fadeIn animation handles the rest of the style update
+    }, 10); 
+};
 
-    if (!personData || !personData[week] || !personData[week][day] || personData[week][day].length < 5) {
-        content.innerHTML = `<div class="muted" style="text-align:center;">No schedule found for ${who} on ${day}.</div>`;
-        return;
-    }
-    
-    const periods = personData[week][day];
-    const colorKey = personData.color;
-    content.innerHTML = '';
-    
-    periods.forEach((lessonRaw, idx) => {
-        const periodNum = idx + 1;
-        const subject = lessonRaw || '';
-        const displaySubject = isFree(subject) ? '(Free)' : subject;
-        
-        const row = document.createElement('div'); row.className = 'scheduleRow';
-        
-        const pnum = document.createElement('div'); 
-        pnum.className = 'scheduleCell pnum'; 
-        pnum.textContent = 'P' + periodNum;
-        
-        const subj = document.createElement('div'); 
-        subj.className = 'scheduleCell subj'; 
-        subj.textContent = displaySubject;
-        
-        // Custom colors from CSS variables
-        if (!isFree(subject) && colorKey) {
-            const cssColorVar = `--color-${colorKey.replace('dark', '').toLowerCase()}`;
-            subj.style.backgroundColor = `var(${cssColorVar})`;
-            // Set contrasting text for the yellow background
-            if (colorKey.toLowerCase() === 'yellow') {
-                subj.style.color = 'var(--text)';
-            } else {
-                subj.style.color = 'white';
-            }
-        } 
+// --- Core Timetable Functions ---
 
-        row.appendChild(pnum);
-        row.appendChild(subj);
-        content.appendChild(row);
-    });
-}
+const handleCheck = (mode) => {
+    const week = document.getElementById('weekSelect').value;
+    const day = document.getElementById('daySelect').value;
+    const period = document.getElementById('periodSelect').value;
+    const resultArea = document.getElementById('resultArea');
 
-function tryAddPhrase() {
-    const txt = elements.phraseInput.value.trim();
-    if (!txt) return showConfirm('Type a phrase first', null, 'OK');
+    if (!timetableData[week] || !timetableData[week][day] || !timetableData[week][day][period]) {
+        resultArea.innerHTML = `<div class="muted">Timetable entry not found for ${week}, ${day}, Period ${period}.</div>`;
+        return;
+    }
 
-    showConfirm(`Are you sure you want to add: "${txt}"?`, () => {
-        // SIMULATED RESPONSE for static site
-        catchphrases.push(txt);
-        elements.phraseInput.value = '';
-        loadRandomTag();
-        showConfirm('Phrase added temporarily! (This is a static site, so it cannot save permanently. The phrase will be lost on refresh.)', null, 'OK');
-    }, 'Yes, add', 'Cancel');
-}
+    const lesson = timetableData[week][day][period];
+    const peopleInLessonIds = lesson.people;
+    let resultPeople;
+    let title;
+    
+    if (mode === 'free') {
+        // Find people whose IDs are NOT in the lesson's people list
+        resultPeople = peopleData.filter(p => !peopleInLessonIds.includes(p.id));
+        title = `Free People (Period ${period}):`;
+    } else { // mode === 'lesson'
+        // Find people whose IDs ARE in the lesson's people list
+        resultPeople = peopleData.filter(p => peopleInLessonIds.includes(p.id));
+        title = `Lesson: ${lesson.subject} (Period ${period}):`;
+    }
 
+    if (resultPeople.length === 0) {
+        resultArea.innerHTML = `<div class="muted">${mode === 'free' ? 'No one is free!' : 'No one has this lesson!'}</div>`;
+        return;
+    }
 
-// --- UI UTILITIES (Modals and Rendering) ---
+    let html = `<div style="font-weight:600; margin-bottom:12px;">${title}</div>`;
+    resultPeople.forEach(person => {
+        html += `
+            <div class="person" style="background:${person.color}15;">
+                <div class="swatch" style="background:${person.color};"></div>
+                <div>${person.name}</div>
+            </div>
+        `;
+    });
 
-function renderAvailability(data) {
-    elements.resultArea.innerHTML = '';
-    if (!data.free || data.free.length === 0) { 
-        elements.resultArea.innerHTML = '<div class="muted">No one free right now.</div>'; 
-        return; 
-    }
-    
-    const h = document.createElement('div'); h.style.marginBottom='8px'; h.textContent = 'Free right now:';
-    elements.resultArea.appendChild(h);
-    
-    data.free.forEach((p, index) => {
-        const row = document.createElement('div'); row.className = 'person';
-        row.style.animationDelay = `${index * 50}ms`; 
-        row.innerHTML = `<div class="swatch" style="background:var(--color-${p.color.replace('dark', '').toLowerCase()})"></div><div><strong>${p.name}</strong></div>`;
-        elements.resultArea.appendChild(row);
-    });
-}
+    resultArea.innerHTML = html;
+};
 
-function renderWhoHasLesson(groups) {
-    elements.resultArea.innerHTML = '';
-    if (!groups || groups.length === 0) { 
-        elements.resultArea.innerHTML = '<div class="muted">No one is in a lesson right now.</div>'; 
-        return; 
-    }
-    
-    let personCounter = 0;
-    groups.forEach(g => {
-        const block = document.createElement('div'); block.style.marginBottom='10px';
-        block.innerHTML = `<div style="margin-bottom:6px; color:var(--text)"><strong>${g.subject}</strong></div>`;
-        
-        g.people.forEach(p => {
-            const row = document.createElement('div'); row.className='person';
-            row.style.animationDelay = `${personCounter * 50}ms`;
-            row.innerHTML = `<div class="swatch" style="background:var(--color-${p.color.replace('dark', '').toLowerCase()})"></div><div>${p.name}</div>`;
-            block.appendChild(row);
-            personCounter++;
-        });
-        elements.resultArea.appendChild(block);
-    });
-}
+// --- Extra Features Functions ---
 
-function showError(msg) {
-    elements.resultArea.innerHTML = `<div style="color:var(--color-red); padding: 8px;">${msg}</div>`;
-}
+const handleAddPhrase = async () => {
+    const phraseInput = document.getElementById('phraseInput');
+    const newPhrase = phraseInput.value.trim();
 
-// Function to handle custom confirmation modals (from your HTML)
-function showConfirm(text, onYes, yesText = 'Yes', noText = 'Cancel') {
-    const root = document.getElementById('confirmModal');
-    const isAlert = !onYes;
+    if (newPhrase.length < 3) {
+        // Use custom modal style instead of alert
+        showCustomMessage("Phrase must be at least 3 characters long.", "Error");
+        return;
+    }
 
-    let buttonsHtml = '';
-    if (isAlert) {
-        buttonsHtml = `<button id="cNo" class="small" style="background:var(--primary-btn-bg);color:var(--primary-btn-text); flex:none; border:none; border: 1px solid var(--primary-btn-bg);">${yesText}</button>`;
-    } else {
-        buttonsHtml = `<button id="cNo" class="small" style="flex:none;">${noText}</button><button id="cYes" class="small" style="background:var(--primary-btn-bg);color:var(--primary-btn-text);flex:none; border:none;">${yesText}</button>`;
-    }
+    try {
+        const phrasesRef = getPublicDocRef('config', 'catchphrases');
+        // Use arrayUnion to safely add the new phrase to the existing array
+        await updateDoc(phrasesRef, {
+            phrases: arrayUnion(newPhrase)
+        });
+        phraseInput.value = '';
+        showCustomMessage(`Phrase "${newPhrase}" added successfully!`, "Success");
+        updateCatchphraseUI();
+    } catch (error) {
+        if (error.code === 'not-found') {
+             // Document doesn't exist, create it.
+             await setDoc(phrasesRef, { phrases: [newPhrase] });
+             phraseInput.value = '';
+             showCustomMessage(`Phrase "${newPhrase}" added successfully!`, "Success");
+             updateCatchphraseUI();
+        } else {
+            console.error("Error adding phrase:", error);
+            showCustomMessage("Failed to save phrase. Check console for details.", "Error");
+        }
+    }
+};
 
-    root.innerHTML = `<div class="modalBack"><div class="modal"><div><strong>${isAlert ? 'Notification' : 'Confirm'}</strong></div><div class="tiny" style="margin-top:8px">${text}</div><div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px">${buttonsHtml}</div></div></div>`;
-    root.style.display = 'block';
+const handleShowDailySchedule = () => {
+    const whoId = document.getElementById('whoSelect').value;
+    const week = document.getElementById('weekSelect2').value;
+    const day = document.getElementById('daySelect2').value;
+    
+    const person = peopleData.find(p => p.id === whoId);
+    
+    if (!person || !timetableData[week] || !timetableData[week][day]) {
+        showCustomMessage("Could not retrieve timetable data.", "Error");
+        return;
+    }
 
-    const close = () => { root.style.display='none'; root.innerHTML=''; };
+    const dailySchedule = timetableData[week][day];
+    const periods = Object.keys(dailySchedule).sort((a, b) => parseInt(a) - parseInt(b));
+    
+    let scheduleHTML = '';
 
-    document.getElementById('cNo').onclick = close;
+    periods.forEach(pNum => {
+        const lesson = dailySchedule[pNum];
+        let subject = "Free";
+        let isMatch = false;
 
-    if (!isAlert) {
-        document.getElementById('cYes').onclick = () => { close(); onYes(); };
-    }
-}
+        if (lesson.people.includes(person.id)) {
+            subject = lesson.subject;
+            isMatch = true;
+        }
 
-function showScheduleModal() {
-    elements.scheduleModalBack.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-}
+        scheduleHTML += `
+            <div class="scheduleRow">
+                <div class="scheduleCell pnum">P${pNum}</div>
+                <div class="scheduleCell subj" style="${isMatch ? `font-weight:600; background: ${person.color}30; border-color: ${person.color};` : ''}">
+                    ${subject}
+                </div>
+            </div>
+        `;
+    });
 
-function hideScheduleModal() {
-    elements.scheduleModalBack.style.display = 'none';
-    document.body.style.overflow = 'auto';
-}
+    document.getElementById('scheduleTitle').textContent = `${person.name}'s Schedule: ${day}, ${week.replace('Week', 'W')}`;
+    document.getElementById('modalScheduleContent').innerHTML = scheduleHTML;
+    document.getElementById('scheduleModalBack').style.display = 'flex';
+};
 
-function setupEventListeners() {
-    // This correctly links the theme toggle to the fixed function
-    elements.darkModeToggle.addEventListener('click', toggleTheme);
-    elements.checkBtn.addEventListener('click', () => checkAvailability('free'));
-    elements.lessonBtn.addEventListener('click', () => checkAvailability('lesson'));
-    elements.toggleExtra.addEventListener('click', toggleExtraPanel);
-    elements.refreshTag.addEventListener('click', loadRandomTag);
-    elements.addPhraseBtn.addEventListener('click', tryAddPhrase);
-    elements.whatBtn.addEventListener('click', showMyDay);
-    elements.scheduleClose.addEventListener('click', hideScheduleModal);
-    elements.scheduleModalBack.addEventListener('click', function(e) {
-        // Close modal only if background is clicked, not the modal content itself
-        if (e.target === this) {
-            hideScheduleModal();
-        }
-    });
-}
+// --- General UI and Event Handling ---
 
-// Ensure the theme is loaded immediately upon script execution
-loadTheme(); 
+const showCustomMessage = (message, title) => {
+    const modalBack = document.getElementById('confirmModal');
+    modalBack.style.cssText = `
+        position:fixed; inset:0; display:flex; align-items:center; justify-content:center; 
+        background:rgba(10,10,10,0.55); z-index:2000;
+    `;
+    modalBack.innerHTML = `
+        <div class="modal">
+            <h3 style="margin-top:0;">${title}</h3>
+            <p>${message}</p>
+            <div style="text-align:right;">
+                <button class="btn" style="width:auto; padding:10px 20px; font-size:14px; margin-top:10px;" onclick="document.getElementById('confirmModal').style.display='none'">
+                    Got it
+                </button>
+            </div>
+        </div>
+    `;
+    modalBack.style.display = 'flex';
+};
 
-// Start the application after the document content is fully loaded
-window.addEventListener('load', init);
+const setupEventListeners = () => {
+    // Core Timetable Buttons
+    document.getElementById('checkBtn').addEventListener('click', () => handleCheck('free'));
+    document.getElementById('lessonBtn').addEventListener('click', () => handleCheck('lesson'));
+
+    // Extra Features Toggle
+    const extraPanel = document.getElementById('extraPanel');
+    document.getElementById('toggleExtra').addEventListener('click', (e) => {
+        const isOpen = extraPanel.classList.contains('open');
+        if (isOpen) {
+            extraPanel.classList.remove('open');
+            e.target.textContent = 'Show';
+        } else {
+            extraPanel.classList.add('open');
+            e.target.textContent = 'Hide';
+        }
+    });
+
+    // Catchphrase Features
+    document.getElementById('addPhraseBtn').addEventListener('click', handleAddPhrase);
+    document.getElementById('refreshTag').addEventListener('click', updateCatchphraseUI);
+
+    // Daily Schedule Feature
+    document.getElementById('whatBtn').addEventListener('click', handleShowDailySchedule);
+    document.getElementById('scheduleClose').addEventListener('click', () => {
+        document.getElementById('scheduleModalBack').style.display = 'none';
+    });
+
+    // Dark Mode Toggle
+    document.getElementById('darkModeToggle').addEventListener('click', toggleDarkMode);
+};
+
+// --- Dark Mode Logic ---
+
+const loadDarkModePreference = () => {
+    const isDarkMode = localStorage.getItem('darkMode') === 'true';
+    if (isDarkMode) {
+        document.body.classList.add('dark-mode');
+    }
+};
+
+const toggleDarkMode = () => {
+    const isDarkMode = document.body.classList.toggle('dark-mode');
+    localStorage.setItem('darkMode', isDarkMode);
+};
+
+// --- Execution ---
+
+window.onload = async () => {
+    loadDarkModePreference();
+    setupEventListeners();
+    await setupFirebase(); // Start the Firebase auth and data loading process
+};
