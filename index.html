@@ -1,536 +1,534 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-  <title>Fuckass Timetable</title>
-  <style>
-    /* ** IMPORTANT ** This CSS is optimized for mobile touch screens (Fluid width, large tap targets, no fixed pixels).
-    */
-    :root{
-      --bg: #ffffff;
-      --card: #f7f7f8;
-      --muted: #9b9b9b;
-      --radius: 14px;
-      --soft-shadow: 0 6px 18px rgba(12,12,14,0.06);
-      --yellow: #ffd54e;
-    }
-    html,body{
-      height:100%;
-      margin:0;
-      font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
-      background:var(--bg);
-      color:#111; 
-      overflow-x: hidden;
-    }
-    
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center; 
-      min-height: 100vh;
-      overflow-y: auto;
-      padding: 20px 0; 
-    }
-    
-    .wrap{
-      max-width:470px;
-      width: 95%; 
-      padding:16px;
-      box-sizing: border-box; 
-    }
-    
-    .title {
-      font-weight:700;
-      text-align:center;
-      font-size:28px;
-      letter-spacing:-0.6px;
-      margin-bottom:12px;
-      position:relative;
-    }
-    .tag {
-      position:absolute;
-      right:6%;
-      top:-8px;
-      transform: rotate(-25deg);
-      color:#333333 !important;
-      background:linear-gradient(90deg, rgba(255,236,166,0.95), rgba(255,248,200,0.95));
-      padding:6px 10px;
-      border-radius:10px;
-      box-shadow: var(--soft-shadow);
-      opacity:0;
-      animation: tagIn 700ms ease forwards;
-      font-weight:700;
-      font-size:12px;
-    }
-    @keyframes tagIn{
-      from { transform: rotate(-45deg) translateY(-10px); opacity:0; }
-      to { transform: rotate(-25deg) translateY(0); opacity:1; }
-    }
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>Fuckass Timetable</title>
+  <style>
+    /* ** IMPORTANT ** This CSS is optimized for mobile touch screens (Fluid width, large tap targets, no fixed pixels).
+    */
+    :root{
+      --bg: #ffffff;
+      --card: #f7f7f8;
+      --muted: #9b9b9b;
+      --radius: 14px;
+      --soft-shadow: 0 6px 18px rgba(12,12,14,0.06);
+      --yellow: #ffd54e;
+    }
+    html,body{
+      height:100%;
+      margin:0;
+      font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+      background:var(--bg);
+      color:#111; 
+      overflow-x: hidden;
+    }
+    
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center; 
+      min-height: 100vh;
+      overflow-y: auto;
+      padding: 20px 0; 
+    }
+    
+    .wrap{
+      max-width:470px;
+      width: 95%; 
+      padding:16px;
+      box-sizing: border-box; 
+    }
+    
+    .title {
+      font-weight:700;
+      text-align:center;
+      font-size:28px;
+      letter-spacing:-0.6px;
+      margin-bottom:12px;
+      position:relative;
+    }
+    .tag {
+      position:absolute;
+      right:6%;
+      top:-8px;
+      transform: rotate(-25deg);
+      color:#333333 !important;
+      background:linear-gradient(90deg, rgba(255,236,166,0.95), rgba(255,248,200,0.95));
+      padding:6px 10px;
+      border-radius:10px;
+      box-shadow: var(--soft-shadow);
+      opacity:0;
+      animation: tagIn 700ms ease forwards;
+      font-weight:700;
+      font-size:12px;
+    }
+    @keyframes tagIn{
+      from { transform: rotate(-45deg) translateY(-10px); opacity:0; }
+      to { transform: rotate(-25deg) translateY(0); opacity:1; }
+    }
 
-    .card { background:var(--card); border-radius:var(--radius); padding:14px; box-shadow:var(--soft-shadow); margin-bottom:12px; }
-    label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px;}
-    select, button, input[type="text"] {
-      width:100%; padding:12px 14px; border-radius:12px; border:2px solid #111; outline:none; font-size:15px;
-      background:white; box-sizing:border-box;
-      min-width: 0;
-    }
-    select { border-color:#111; }
-    .row{
-      display:flex;
-      gap:10px;
-      flex-wrap: wrap; 
-    }
-    .row > * { 
-      flex:1; 
-      min-width: 100%; 
-    }
-    .row select {
-        margin-bottom: 8px; 
-    }
-    .btn { cursor:pointer; border:none; font-weight:700; background:#111;color:white; border-radius:12px;padding:12px; transition:transform .18s ease; }
-    .btn:active{ transform:scale(.98); }
-    .result { padding:12px; margin-top:12px; border-radius:12px; background:linear-gradient(180deg,#fff,#fafafa); border:1px solid #eee; min-height:60px; }
-    .person { display:flex; gap:10px; align-items:center; padding:8px; border-radius:10px; margin-bottom:8px; }
-    .swatch{width:14px;height:14px;border-radius:5px;box-shadow:0 2px 6px rgba(0,0,0,0.06);}
-    .muted{color:var(--muted);font-size:13px}
-    .extra { margin-top:8px; display:flex; gap:8px; }
-    .small { padding:8px 10px; font-size:14px; border-radius:10px; background:#fff; border:1px solid #eaeaea; }
-    .collapse { max-height:0; overflow:hidden; transition:max-height .35s cubic-bezier(.2,.9,.3,1); }
-    .collapse.open { max-height:420px; }
+    .card { background:var(--card); border-radius:var(--radius); padding:14px; box-shadow:var(--soft-shadow); margin-bottom:12px; }
+    label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px;}
+    select, button, input[type="text"] {
+      width:100%; padding:12px 14px; border-radius:12px; border:2px solid #111; outline:none; font-size:15px;
+      background:white; box-sizing:border-box;
+      min-width: 0;
+    }
+    select { border-color:#111; }
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap: wrap; 
+    }
+    .row > * { 
+      flex:1; 
+      min-width: 100%; 
+    }
+    .row select {
+        margin-bottom: 8px; 
+    }
+    .btn { cursor:pointer; border:none; font-weight:700; background:#111;color:white; border-radius:12px;padding:12px; transition:transform .18s ease; }
+    .btn:active{ transform:scale(.98); }
+    .result { padding:12px; margin-top:12px; border-radius:12px; background:linear-gradient(180deg,#fff,#fafafa); border:1px solid #eee; min-height:60px; }
+    .person { display:flex; gap:10px; align-items:center; padding:8px; border-radius:10px; margin-bottom:8px; }
+    .swatch{width:14px;height:14px;border-radius:5px;box-shadow:0 2px 6px rgba(0,0,0,0.06);}
+    .muted{color:var(--muted);font-size:13px}
+    .extra { margin-top:8px; display:flex; gap:8px; }
+    .small { padding:8px 10px; font-size:14px; border-radius:10px; background:#fff; border:1px solid #eaeaea; }
+    .collapse { max-height:0; overflow:hidden; transition:max-height .35s cubic-bezier(.2,.9,.3,1); }
+    .collapse.open { max-height:420px; }
 
-    .person { transform: translateY(6px); opacity:0; animation: personIn .35s forwards; }
-    .person:nth-child(1){ animation-delay:30ms } .person:nth-child(2){ animation-delay:80ms } .person:nth-child(3){ animation-delay:120ms } 
-    @keyframes personIn { to{ transform:none; opacity:1 } from { transform:translateY(6px); opacity:0 } }
+    .person { transform: translateY(6px); opacity:0; animation: personIn .35s forwards; }
+    .person:nth-child(1){ animation-delay:30ms } .person:nth-child(2){ animation-delay:80ms } .person:nth-child(3){ animation-delay:120ms } 
+    @keyframes personIn { to{ transform:none; opacity:1 } from { transform:translateY(6px); opacity:0 } }
 
-    /* Modal Styles (Confirmation & Custom Alert) */
-    .modalBack{ position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(10,10,10,0.32); z-index:1000; }
-    .modal{ width:90%; max-width:420px; background:#fff; border-radius:12px; padding:14px; box-shadow:var(--soft-shadow); }
-    .tiny{font-size:13px;color:var(--muted); margin-top:8px}
-    
-    /* Schedule Modal Styles */
-    .scheduleRow{ display: flex; gap: 8px; margin: 6px 0; align-items: center; }
-    .scheduleCell{ padding: 8px; border-radius: 8px; border: 1px solid #eee; text-align: left; }
-    .pnum { width: 50px; text-align: center; font-weight: 600; flex-shrink: 0; background: #f7f7f8; color: #333; border: 1px solid #ddd; }
-    .subj { flex-grow: 1; }
-    
-    .scheduleModalBack {
-      position: fixed;
-      inset: 0;
-      background: rgba(10, 10, 10, 0.75);
-      z-index: 1010;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      backdrop-filter: blur(5px);
-    }
-    .scheduleModal {
-      width: 90%;
-      max-width: 400px;
-      max-height: 80vh; 
-      background: #fff;
-      border-radius: 18px;
-      padding: 20px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-      overflow-y: auto; 
-    }
-    .modalHeader {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-    .modalClose {
-      font-size: 24px;
-      font-weight: 300;
-      cursor: pointer;
-      color: #777;
-    }
-    
-    @media (max-width:420px){
-      .wrap{
-        padding:12px;
-      }
-      .title{font-size:22px}
-    }
-  </style>
+    /* Modal Styles (Confirmation & Custom Alert) */
+    .modalBack{ position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(10,10,10,0.32); z-index:1000; }
+    .modal{ width:90%; max-width:420px; background:#fff; border-radius:12px; padding:14px; box-shadow:var(--soft-shadow); }
+    .tiny{font-size:13px;color:var(--muted); margin-top:8px}
+    
+    /* Schedule Modal Styles */
+    .scheduleRow{ display: flex; gap: 8px; margin: 6px 0; align-items: center; }
+    .scheduleCell{ padding: 8px; border-radius: 8px; border: 1px solid #eee; text-align: left; }
+    .pnum { width: 50px; text-align: center; font-weight: 600; flex-shrink: 0; background: #f7f7f8; color: #333; border: 1px solid #ddd; }
+    .subj { flex-grow: 1; }
+    
+    .scheduleModalBack {
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 10, 10, 0.75);
+      z-index: 1010;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(5px);
+    }
+    .scheduleModal {
+      width: 90%;
+      max-width: 400px;
+      max-height: 80vh; 
+      background: #fff;
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      overflow-y: auto; 
+    }
+    .modalHeader {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .modalClose {
+      font-size: 24px;
+      font-weight: 300;
+      cursor: pointer;
+      color: #777;
+    }
+    
+    @media (max-width:420px){
+      .wrap{
+        padding:12px;
+      }
+      .title{font-size:22px}
+    }
+  </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="title card">
-      <div style="position:relative">
-        <div style="font-size:28px;">Fuckass Timetable</div>
-        <div id="randomTag" class="tag" aria-hidden="true"></div>
-      </div>
-    </div>
+  <div class="wrap">
+    <div class="title card">
+      <div style="position:relative">
+        <div style="font-size:28px;">Fuckass Timetable</div>
+        <div id="randomTag" class="tag" aria-hidden="true"></div>
+      </div>
+    </div>
 
-    <div class="card">
-      <label>Week</label>
-      <select id="weekSelect"></select>
+    <div class="card">
+      <label>Week</label>
+      <select id="weekSelect"></select>
 
-      <label style="margin-top:10px">Day</label>
-      <select id="daySelect"></select>
+      <label style="margin-top:10px">Day</label>
+      <select id="daySelect"></select>
 
-      <label style="margin-top:10px">Period</label>
-      <select id="periodSelect">
-        <option value="1">Period 1</option>
-        <option value="2">Period 2</option>
-        <option value="3">Period 3</option>
-        <option value="4">Period 4</option>
-        <option value="5">Period 5</option>
-      </select>
+      <label style="margin-top:10px">Period</label>
+      <select id="periodSelect">
+        <option value="1">Period 1</option>
+        <option value="2">Period 2</option>
+        <option value="3">Period 3</option>
+        <option value="4">Period 4</option>
+        <option value="5">Period 5</option>
+      </select>
 
-      <div style="display:flex; gap:10px; margin-top:12px;">
-        <button class="btn" id="checkBtn">Check who's free</button>
-        <button class="btn" id="lessonBtn" style="background:#fff;color:#111;border:2px solid #111">Who has a lesson</button>
-      </div>
+      <div style="display:flex; gap:10px; margin-top:12px;">
+        <button class="btn" id="checkBtn">Check who's free</button>
+        <button class="btn" id="lessonBtn" style="background:#fff;color:#111;border:2px solid #111">Who has a lesson</button>
+      </div>
 
-      <div id="resultArea" class="result"></div>
-    </div>
+      <div id="resultArea" class="result"></div>
+    </div>
 
-    <div class="card">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <div><strong>Extra features</strong><div class="tiny">Add catchphrase / What do I have today</div></div>
-        <button id="toggleExtra" class="small">Show</button>
-      </div>
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div><strong>Extra features</strong><div class="tiny">Add catchphrase / What do I have today</div></div>
+        <button id="toggleExtra" class="small">Show</button>
+      </div>
 
-      <div id="extraPanel" class="collapse">
-        <div style="margin-top:12px;">
-          <label>Add a catchphrase</label>
-          <input type="text" id="phraseInput" placeholder="Type phrase...">
-          <div style="display:flex; gap:8px; margin-top:8px;">
-            <button id="addPhraseBtn" class="small">Add phrase</button>
-            <button id="refreshTag" class="small">Refresh random tag</button>
-          </div>
-        </div>
+      <div id="extraPanel" class="collapse">
+        <div style="margin-top:12px;">
+          <label>Add a catchphrase</label>
+          <input type="text" id="phraseInput" placeholder="Type phrase...">
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <button id="addPhraseBtn" class="small">Add phrase</button>
+            <button id="refreshTag" class="small">Refresh random tag</button>
+          </div>
+        </div>
 
-        <hr style="margin:12px 0;border:none;border-top:1px solid #eee">
+        <hr style="margin:12px 0;border:none;border-top:1px solid #eee">
 
-        <div>
-          <label>What do I have today?</label>
-          <div class="row">
-            <select id="whoSelect"></select>
-            <select id="weekSelect2"></select>
-          </div>
-          <select id="daySelect2" style="margin-top:8px;width:100%"></select>
-          <button id="whatBtn" class="btn" style="margin-top:10px">Show my day</button>
-        </div>
-      </div>
-    </div>
+        <div>
+          <label>What do I have today?</label>
+          <div class="row">
+            <select id="whoSelect"></select>
+            <select id="weekSelect2"></select>
+          </div>
+          <select id="daySelect2" style="margin-top:8px;width:100%"></select>
+          <button id="whatBtn" class="btn" style="margin-top:10px">Show my day</button>
+        </div>
+      </div>
+    </div>
 
-    <div style="text-align:center; color:var(--muted); font-size:13px; margin-top:8px">Made for iPhone — © Alessandro 2025</div>
-  </div>
+    <div style="text-align:center; color:var(--muted); font-size:13px; margin-top:8px">Made for iPhone — © Alessandro 2025</div>
+  </div>
 
-  <!-- Custom Alert/Confirm Modal -->
-  <div id="confirmModal" style="display:none;"></div>
+  <!-- Custom Alert/Confirm Modal -->
+  <div id="confirmModal" style="display:none;"></div>
 
-  <!-- Schedule Display Modal -->
-  <div id="scheduleModalBack" class="scheduleModalBack">
-    <div id="scheduleModal" class="scheduleModal">
-      <div class="modalHeader">
-        <h3 id="scheduleTitle" style="margin:0;">Schedule</h3>
-        <span id="scheduleClose" class="modalClose">&times;</span>
-      </div>
-      <div id="modalScheduleContent">
-        <!-- Schedule rows will be injected here -->
-      </div>
-    </div>
-  </div>
+  <!-- Schedule Display Modal -->
+  <div id="scheduleModalBack" class="scheduleModalBack">
+    <div id="scheduleModal" class="scheduleModal">
+      <div class="modalHeader">
+        <h3 id="scheduleTitle" style="margin:0;">Schedule</h3>
+        <span id="scheduleClose" class="modalClose">&times;</span>
+      </div>
+      <div id="modalScheduleContent">
+        <!-- Schedule rows will be injected here -->
+      </div>
+    </div>
+  </div>
 
 <script>
-  // 🛑🛑🛑 CRITICAL EDIT: PASTE THE WEB APP URL HERE
-  const API_ENDPOINT = 'https://script.google.com/macros/s/AKfycbz3Drz1CRWek8MYH5rD1G-kKhdRs28xu4SRJstDkS8JeH-K_0tZlLlq45CSa7mN2yXdQw/exec'; 
-  
-  let cfg = null;
+  // 🛑🛑🛑 CRITICAL EDIT: PASTE THE WEB APP URL HERE
+  // Updated with the new deployment ID provided by the user:
+  const API_ENDPOINT = 'https://script.google.com/macros/s/AKfycbz3Drz1CRWek8MYH5rD1G-kKhdRs28xu4SRJstDkS8JeH-K_0tZlLlq45CSa7mN2yXdQw/exec'; 
+  
+  let cfg = null;
 
-  /**
-   * Universal function to call the Apps Script API via fetch.
-   */
-  async function callApi(functionName, args = []) {
-    if (API_ENDPOINT === 'https://script.google.com/macros/s/AKfycbz3Drz1CRWek8MYH5rD1G-kKhdRs28xu4SRJstDkS8JeH-K_0tZlLlq45CSa7mN2yXdQw/exec') {
-        showError("API Endpoint not set. Functionality disabled.");
-        throw new Error("API URL missing. Please deploy Apps Script and set API_ENDPOINT.");
-    }
-    
-    const payload = { functionName, args };
+  /**
+   * Universal function to call the Apps Script API via fetch.
+   */
+  async function callApi(functionName, args = []) {
+    // The API URL is set, so we proceed directly to the fetch call.
+    
+    const payload = { functionName, args };
 
-    try {
-      // Use exponential backoff for retries
-      let lastError = null;
-      for (let i = 0; i < 3; i++) {
-          const response = await fetch(API_ENDPOINT, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(payload)
-          });
+    try {
+      // Use exponential backoff for retries
+      let lastError = null;
+      for (let i = 0; i < 3; i++) {
+          const response = await fetch(API_ENDPOINT, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+          });
 
-          if (response.ok) {
-              const result = await response.json();
-              if (result.success) {
-                  return result.data;
-              } else {
-                  throw new Error(result.error || 'Apps Script execution failed.');
-              }
-          } else {
-              // Store the last error and try again
-              lastError = new Error(`HTTP error! status: ${response.status}`);
-              if (i < 2) {
-                  // Wait for 2^i seconds before the next retry
-                  await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
-              }
-          }
-      }
-      throw lastError; // Re-throw the last error after retries
-    } catch (error) {
-      console.error('API Call Failed:', error);
-      throw new Error('Connection or script execution error: ' + error.message);
-    }
-  }
-  
-  // --- CORE APP INITIALIZATION ---
+          if (response.ok) {
+              const result = await response.json();
+              if (result.success) {
+                  return result.data;
+              } else {
+                  throw new Error(result.error || 'Apps Script execution failed.');
+              }
+          } else {
+              // Store the last error and try again
+              lastError = new Error(`HTTP error! status: ${response.status}`);
+              if (i < 2) {
+                  // Wait for 2^i seconds before the next retry
+                  await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+              }
+          }
+      }
+      throw lastError; // Re-throw the last error after retries
+    } catch (error) {
+      console.error('API Call Failed:', error);
+      throw new Error('Connection or script execution error: ' + error.message);
+    }
+  }
+  
+  // --- CORE APP INITIALIZATION ---
 
-  async function init() {
-    try {
-      const res = await callApi('getConfig');
-      cfg = res;
-      populate(res);
-      loadRandomTag();
-    } catch (e) {
-      showError('Initialization Error: ' + e.message + '. Check Apps Script deployment and API URL.');
-    }
-    
-    // Set up global listeners
-    document.getElementById('scheduleClose').addEventListener('click', hideScheduleModal);
-    document.getElementById('scheduleModalBack').addEventListener('click', function(e) {
-      if (e.target === this) {
-        hideScheduleModal();
-      }
-    });
-  }
-  
-  function populate(res) {
-    const weeks = res.weeks;
-    const days = res.days;
-    const people = res.people;
-    
-    const selects = [
-        { el: document.getElementById('weekSelect'), data: weeks },
-        { el: document.getElementById('weekSelect2'), data: weeks },
-        { el: document.getElementById('daySelect'), data: days },
-        { el: document.getElementById('daySelect2'), data: days },
-    ];
+  async function init() {
+    try {
+      const res = await callApi('getConfig');
+      cfg = res;
+      populate(res);
+      loadRandomTag();
+    } catch (e) {
+      showError('Initialization Error: ' + e.message + '. Ensure your Apps Script Code.gs is correct and deployed.');
+    }
+    
+    // Set up global listeners
+    document.getElementById('scheduleClose').addEventListener('click', hideScheduleModal);
+    document.getElementById('scheduleModalBack').addEventListener('click', function(e) {
+      if (e.target === this) {
+        hideScheduleModal();
+      }
+    });
+  }
+  
+  function populate(res) {
+    const weeks = res.weeks;
+    const days = res.days;
+    const people = res.people;
+    
+    const selects = [
+        { el: document.getElementById('weekSelect'), data: weeks },
+        { el: document.getElementById('weekSelect2'), data: weeks },
+        { el: document.getElementById('daySelect'), data: days },
+        { el: document.getElementById('daySelect2'), data: days },
+    ];
 
-    selects.forEach(({ el, data }) => {
-        el.innerHTML = '';
-        data.forEach(item => el.appendChild(new Option(item, item)));
-    });
-    
-    const whoSelect = document.getElementById('whoSelect');
-    whoSelect.innerHTML='';
-    people.forEach(p => whoSelect.appendChild(new Option(p,p)));
-    
-    // Set defaults (ensures the UI is ready for the first request)
-    if(weeks.length) { document.getElementById('weekSelect').value = weeks[0]; document.getElementById('weekSelect2').value = weeks[0]; }
-    if(days.length) { document.getElementById('daySelect').value = days[0]; document.getElementById('daySelect2').value = days[0]; }
-    document.getElementById('periodSelect').value = '1'; 
-  }
+    selects.forEach(({ el, data }) => {
+        el.innerHTML = '';
+        data.forEach(item => el.appendChild(new Option(item, item)));
+    });
+    
+    const whoSelect = document.getElementById('whoSelect');
+    whoSelect.innerHTML='';
+    people.forEach(p => whoSelect.appendChild(new Option(p,p)));
+    
+    // Set defaults (ensures the UI is ready for the first request)
+    if(weeks.length) { document.getElementById('weekSelect').value = weeks[0]; document.getElementById('weekSelect2').value = weeks[0]; }
+    if(days.length) { document.getElementById('daySelect').value = days[0]; document.getElementById('daySelect2').value = days[0]; }
+    document.getElementById('periodSelect').value = '1'; 
+  }
 
-  // --- FEATURE FUNCTIONS ---
+  // --- FEATURE FUNCTIONS ---
 
-  async function loadRandomTag() {
-    try {
-      const ph = await callApi('getRandomPhrase');
-      const el = document.getElementById('randomTag');
-      if (!ph) { el.style.display='none'; return; }
-      el.textContent = ph;
-      el.style.display='block';
-    } catch(e) {
-      console.error("Failed to load tag:", e);
-      document.getElementById('randomTag').style.display='none';
-    }
-  }
-  document.getElementById('refreshTag').addEventListener('click', loadRandomTag);
+  async function loadRandomTag() {
+    try {
+      const ph = await callApi('getRandomPhrase');
+      const el = document.getElementById('randomTag');
+      if (!ph) { el.style.display='none'; return; }
+      el.textContent = ph;
+      el.style.display='block';
+    } catch(e) {
+      console.error("Failed to load tag:", e);
+      document.getElementById('randomTag').style.display='none';
+    }
+  }
+  document.getElementById('refreshTag').addEventListener('click', loadRandomTag);
 
-  document.getElementById('toggleExtra').addEventListener('click', function(){
-    const extra = document.getElementById('extraPanel');
-    extra.classList.toggle('open');
-    this.textContent = extra.classList.contains('open') ? 'Hide' : 'Show';
-  });
+  document.getElementById('toggleExtra').addEventListener('click', function(){
+    const extra = document.getElementById('extraPanel');
+    extra.classList.toggle('open');
+    this.textContent = extra.classList.contains('open') ? 'Hide' : 'Show';
+  });
 
-  document.getElementById('checkBtn').addEventListener('click', async function(){
-    const week = document.getElementById('weekSelect').value;
-    const day = document.getElementById('daySelect').value;
-    const period = parseInt(document.getElementById('periodSelect').value,10);
-    showLoading(true, 'checkBtn', "Checking…");
-    try {
-        const res = await callApi('getAvailability', [week, day, period]);
-        renderAvailability(res);
-    } catch (e) {
-        showError(e.message);
-    } finally {
-        showLoading(false, 'checkBtn', "Check who's free");
-    }
-  });
+  document.getElementById('checkBtn').addEventListener('click', async function(){
+    const week = document.getElementById('weekSelect').value;
+    const day = document.getElementById('daySelect').value;
+    const period = parseInt(document.getElementById('periodSelect').value,10);
+    showLoading(true, 'checkBtn', "Checking…");
+    try {
+        const res = await callApi('getAvailability', [week, day, period]);
+        renderAvailability(res);
+    } catch (e) {
+        showError(e.message);
+    } finally {
+        showLoading(false, 'checkBtn', "Check who's free");
+    }
+  });
 
-  document.getElementById('lessonBtn').addEventListener('click', async function(){
-    const week = document.getElementById('weekSelect').value;
-    const day = document.getElementById('daySelect').value;
-    const period = parseInt(document.getElementById('periodSelect').value,10);
-    showLoading(true, 'lessonBtn', "Checking…");
-    try {
-        const groups = await callApi('getWhoHasLessonNow', [week, day, period]);
-        renderWhoHasLesson(groups);
-    } catch (e) {
-        showError(e.message);
-    } finally {
-        showLoading(false, 'lessonBtn', "Who has a lesson");
-    }
-  });
+  document.getElementById('lessonBtn').addEventListener('click', async function(){
+    const week = document.getElementById('weekSelect').value;
+    const day = document.getElementById('daySelect').value;
+    const period = parseInt(document.getElementById('periodSelect').value,10);
+    showLoading(true, 'lessonBtn', "Checking…");
+    try {
+        const groups = await callApi('getWhoHasLessonNow', [week, day, period]);
+        renderWhoHasLesson(groups);
+    } catch (e) {
+        showError(e.message);
+    } finally {
+        showLoading(false, 'lessonBtn', "Who has a lesson");
+    }
+  });
 
-  // Add Phrase function
-  document.getElementById('addPhraseBtn').addEventListener('click', function(){
-    const txt = document.getElementById('phraseInput').value.trim();
-    if (!txt) return showConfirm('Type a phrase first', null, 'OK'); 
-    showConfirm(`Are you sure you want to add: "${txt}"?`, async () => {
-        try {
-            const r = await callApi('addPhrase', [txt]);
-            if (r && r.success) {
-                showConfirm('Added! Give the tag a refresh.', null, 'OK');
-                document.getElementById('phraseInput').value = '';
-                loadRandomTag(); 
-            } else {
-                showConfirm('Failed to add phrase', null, 'OK');
-            }
-        } catch (e) {
-            showConfirm('API Error: ' + e.message, null, 'OK');
-        }
-    }, 'Yes, add', 'Cancel');
-  });
+  // Add Phrase function
+  document.getElementById('addPhraseBtn').addEventListener('click', function(){
+    const txt = document.getElementById('phraseInput').value.trim();
+    if (!txt) return showConfirm('Type a phrase first', null, 'OK'); 
+    showConfirm(`Are you sure you want to add: "${txt}"?`, async () => {
+        try {
+            const r = await callApi('addPhrase', [txt]);
+            if (r && r.success) {
+                showConfirm('Added! Give the tag a refresh.', null, 'OK');
+                document.getElementById('phraseInput').value = '';
+                loadRandomTag(); 
+            } else {
+                showConfirm('Failed to add phrase', null, 'OK');
+            }
+        } catch (e) {
+            showConfirm('API Error: ' + e.message, null, 'OK');
+        }
+    }, 'Yes, add', 'Cancel');
+  });
 
-  // What do I have today
-  document.getElementById('whatBtn').addEventListener('click', async function(){
-    const who = document.getElementById('whoSelect').value;
-    const week = document.getElementById('weekSelect2').value;
-    const day = document.getElementById('daySelect2').value;
-    
-    const content = document.getElementById('modalScheduleContent');
-    const title = document.getElementById('scheduleTitle');
-    
-    content.innerHTML = '<div style="text-align:center;padding:10px;">Loading…</div>';
-    title.textContent = `${who}'s Schedule for ${day}`;
-    showScheduleModal(); 
-    
-    try {
-        const arr = await callApi('getDaySchedule', [who, week, day]);
-        content.innerHTML = '';
-        if (!arr || arr.length === 0) {
-            content.innerHTML = `<div class="muted" style="text-align:center;">No schedule found for ${who} on ${day}.</div>`;
-            return;
-        }
-        arr.forEach((s,idx) => {
-            const row = document.createElement('div'); row.className='scheduleRow';
-            
-            const pnum = document.createElement('div'); pnum.className='scheduleCell pnum'; pnum.textContent = 'P' + (idx+1);
-            const subj = document.createElement('div'); subj.className='scheduleCell subj'; subj.textContent = s || '(free)';
-            
-            row.appendChild(pnum); 
-            row.appendChild(subj); 
-            content.appendChild(row);
-        });
-    } catch (e) { 
-      content.innerHTML = `<div class="muted" style="color:#b00020; text-align:center;">Error: ${e.message}</div>`; 
-    }
-  });
+  // What do I have today
+  document.getElementById('whatBtn').addEventListener('click', async function(){
+    const who = document.getElementById('whoSelect').value;
+    const week = document.getElementById('weekSelect2').value;
+    const day = document.getElementById('daySelect2').value;
+    
+    const content = document.getElementById('modalScheduleContent');
+    const title = document.getElementById('scheduleTitle');
+    
+    content.innerHTML = '<div style="text-align:center;padding:10px;">Loading…</div>';
+    title.textContent = `${who}'s Schedule for ${day}`;
+    showScheduleModal(); 
+    
+    try {
+        const arr = await callApi('getDaySchedule', [who, week, day]);
+        content.innerHTML = '';
+        if (!arr || arr.length === 0) {
+            content.innerHTML = `<div class="muted" style="text-align:center;">No schedule found for ${who} on ${day}.</div>`;
+            return;
+        }
+        arr.forEach((s,idx) => {
+            const row = document.createElement('div'); row.className='scheduleRow';
+            
+            const pnum = document.createElement('div'); pnum.className='scheduleCell pnum'; pnum.textContent = 'P' + (idx+1);
+            const subj = document.createElement('div'); subj.className='scheduleCell subj'; subj.textContent = s || '(free)';
+            
+            row.appendChild(pnum); 
+            row.appendChild(subj); 
+            content.appendChild(row);
+        });
+    } catch (e) { 
+      content.innerHTML = `<div class="muted" style="color:#b00020; text-align:center;">Error: ${e.message}</div>`; 
+    }
+  });
 
 
-  // --- UI UTILITIES (Modals and Rendering) ---
+  // --- UI UTILITIES (Modals and Rendering) ---
 
-  function renderAvailability(data) {
-    const area = document.getElementById('resultArea');
-    area.innerHTML = '';
-    if (!data) { area.innerHTML = '<div class="muted">No data</div>'; return; }
-    if (data.free && data.free.length) {
-      const h = document.createElement('div'); h.style.marginBottom='8px'; h.textContent = 'Free right now:';
-      area.appendChild(h);
-      data.free.forEach(p => {
-        const row = document.createElement('div'); row.className='person';
-        row.innerHTML = `<div class="swatch" style="background:${p.color}"></div><div><strong>${p.name}</strong></div>`;
-        area.appendChild(row);
-      });
-    } else {
-      const p = document.createElement('div'); p.className='muted'; p.textContent = 'No one free right now.';
-      area.appendChild(p);
-    }
-  }
+  function renderAvailability(data) {
+    const area = document.getElementById('resultArea');
+    area.innerHTML = '';
+    if (!data) { area.innerHTML = '<div class="muted">No data</div>'; return; }
+    if (data.free && data.free.length) {
+      const h = document.createElement('div'); h.style.marginBottom='8px'; h.textContent = 'Free right now:';
+      area.appendChild(h);
+      data.free.forEach(p => {
+        const row = document.createElement('div'); row.className='person';
+        row.innerHTML = `<div class="swatch" style="background:${p.color}"></div><div><strong>${p.name}</strong></div>`;
+        area.appendChild(row);
+      });
+    } else {
+      const p = document.createElement('div'); p.className='muted'; p.textContent = 'No one free right now.';
+      area.appendChild(p);
+    }
+  }
 
-  function renderWhoHasLesson(groups) {
-    const area = document.getElementById('resultArea');
-    area.innerHTML = '';
-    if (!groups || groups.length === 0) { area.innerHTML = '<div class="muted">No one is in a lesson right now.</div>'; return; }
-    groups.forEach(g => {
-      const block = document.createElement('div'); block.style.marginBottom='10px';
-      block.innerHTML = `<div style="margin-bottom:6px"><strong>${g.subject}</strong></div>`;
-      g.people.forEach(p => {
-        const row = document.createElement('div'); row.className='person';
-        row.innerHTML = `<div class="swatch" style="background:${p.color}"></div><div>${p.name}</div>`;
-        block.appendChild(row);
-      });
-      area.appendChild(block);
-    });
-  }
+  function renderWhoHasLesson(groups) {
+    const area = document.getElementById('resultArea');
+    area.innerHTML = '';
+    if (!groups || groups.length === 0) { area.innerHTML = '<div class="muted">No one is in a lesson right now.</div>'; return; }
+    groups.forEach(g => {
+      const block = document.createElement('div'); block.style.marginBottom='10px';
+      block.innerHTML = `<div style="margin-bottom:6px"><strong>${g.subject}</strong></div>`;
+      g.people.forEach(p => {
+        const row = document.createElement('div'); row.className='person';
+        row.innerHTML = `<div class="swatch" style="background:${p.color}"></div><div>${p.name}</div>`;
+        block.appendChild(row);
+      });
+      area.appendChild(block);
+    });
+  }
 
-  function showError(msg) {
-    const area = document.getElementById('resultArea');
-    area.innerHTML = `<div style="color:#b00020">${msg}</div>`;
-  }
+  function showError(msg) {
+    const area = document.getElementById('resultArea');
+    area.innerHTML = `<div style="color:#b00020">${msg}</div>`;
+  }
 
-  function showLoading(is, buttonId, defaultText) {
-    const btn = document.getElementById(buttonId);
-    if (!btn) return;
-    if (is) {
-        btn.textContent = "Checking…";
-        btn.disabled = true;
-    } else {
-        btn.textContent = defaultText;
-        btn.disabled = false;
-    }
-  }
+  function showLoading(is, buttonId, defaultText) {
+    const btn = document.getElementById(buttonId);
+    if (!btn) return;
+    if (is) {
+        btn.textContent = "Checking…";
+        btn.disabled = true;
+    } else {
+        btn.textContent = defaultText;
+        btn.disabled = false;
+    }
+  }
 
-  function showScheduleModal() {
-    document.getElementById('scheduleModalBack').style.display = 'flex';
-    document.body.style.overflow = 'hidden'; 
-  }
-  
-  function hideScheduleModal() {
-    document.getElementById('scheduleModalBack').style.display = 'none';
-    document.body.style.overflow = 'auto';
-  }
+  function showScheduleModal() {
+    document.getElementById('scheduleModalBack').style.display = 'flex';
+    document.body.style.overflow = 'hidden'; 
+  }
+  
+  function hideScheduleModal() {
+    document.getElementById('scheduleModalBack').style.display = 'none';
+    document.body.style.overflow = 'auto';
+  }
 
-  // Custom Modal replacement for alert() and confirm()
-  function showConfirm(text, onYes, yesText = 'Yes', noText = 'Cancel') {
-    const root = document.getElementById('confirmModal');
-    const isAlert = !onYes; 
-    
-    let buttonsHtml = '';
-    if (isAlert) {
-        buttonsHtml = `<button id="cNo" class="small" style="background:#111;color:#fff; flex:none;">${yesText}</button>`;
-    } else {
-        buttonsHtml = `<button id="cNo" class="small" style="flex:none;">${noText}</button><button id="cYes" class="small" style="background:#111;color:#fff;flex:none;">${yesText}</button>`;
-    }
-    
-    root.innerHTML = `<div class="modalBack"><div class="modal"><div><strong>${isAlert ? 'Notification' : 'Confirm'}</strong></div><div class="tiny" style="margin-top:8px">${text}</div><div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px">${buttonsHtml}</div></div></div>`;
-    root.style.display = 'block';
-    
-    const close = () => { root.style.display='none'; root.innerHTML=''; };
-    
-    document.getElementById('cNo').onclick = close;
-    
-    if (!isAlert) {
-      document.getElementById('cYes').onclick = () => { close(); onYes(); };
-    }
-  }
+  // Custom Modal replacement for alert() and confirm()
+  function showConfirm(text, onYes, yesText = 'Yes', noText = 'Cancel') {
+    const root = document.getElementById('confirmModal');
+    const isAlert = !onYes; 
+    
+    let buttonsHtml = '';
+    if (isAlert) {
+        buttonsHtml = `<button id="cNo" class="small" style="background:#111;color:#fff; flex:none;">${yesText}</button>`;
+    } else {
+        buttonsHtml = `<button id="cNo" class="small" style="flex:none;">${noText}</button><button id="cYes" class="small" style="background:#111;color:#fff;flex:none;">${yesText}</button>`;
+    }
+    
+    root.innerHTML = `<div class="modalBack"><div class="modal"><div><strong>${isAlert ? 'Notification' : 'Confirm'}</strong></div><div class="tiny" style="margin-top:8px">${text}</div><div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px">${buttonsHtml}</div></div></div>`;
+    root.style.display = 'block';
+    
+    const close = () => { root.style.display='none'; root.innerHTML=''; };
+    
+    document.getElementById('cNo').onclick = close;
+    
+    if (!isAlert) {
+      document.getElementById('cYes').onclick = () => { close(); onYes(); };
+    }
+  }
 
 
-  window.onload = init;
+  window.onload = init;
 </script>
 </body>
 </html>
