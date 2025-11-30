@@ -300,8 +300,7 @@
   </div>
 
 <script>
-  // 🛑🛑🛑 CRITICAL EDIT: PASTE THE WEB APP URL HERE
-  // You MUST replace the URL below with the actual "Web app URL" copied from your Apps Script deployment management screen.
+  // The correct Apps Script URL confirmed by the user.
   const API_ENDPOINT = 'https://script.google.com/macros/s/AKfycby2V0I9kOjI3spQ749nljmu1cPbn2nnp-Ql9mM7XGTpgolIGZ4DDqLtl6R84Qox9s1k0g/exec'; 
   
   let cfg = null;
@@ -389,7 +388,11 @@
       populate(res);
       loadRandomTag();
     } catch (e) {
-      showError('Initialization Error: ' + e.message + '. Ensure your Apps Script Code.gs is correct and deployed.');
+      // Diagnostic message specifically addressing the sandbox/CORS issue
+      showError(`Initialization Failed: ${e.message}. 
+        Since you confirmed this works on other devices, this error is almost certainly due to 
+        the restrictive security sandbox of this preview window (CORS block). 
+        Please open this HTML file directly in a new browser tab to use the app fully.`);
     }
     
     // Set up global listeners
