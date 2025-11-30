@@ -1,408 +1,87 @@
 {
-"Alex": {
-"color": "blue",
-"Week 1": {
-"Monday": [
-"Business",
-"Sociology",
-"Psychology",
-"Period 4",
-"Period 5"
-],
-"Tuesday": [
-"Media",
-"Business",
-"Sociology",
-"Psychology",
-"Sociology"
-],
-"Wednesday": [
-"Period 1",
-"TPE",
-"Psychology",
-"Media",
-"Business"
-],
-"Thursday": [
-"Psychology",
-"Sociology",
-"Psychology",
-"Business",
-"Media"
-],
-"Friday": [
-"Period 1",
-"Media",
-"Business",
-"Period 4",
-"Sociology"
-]
-},
-"Week 2": {
-"Monday": [
-"Business",
-"Sociology",
-"Psychology",
-"Business Lesson 10",
-"Media"
-],
-"Tuesday": [
-"Media",
-"Business",
-"TPE",
-"Citizenship",
-"Psychology"
-],
-"Wednesday": [
-"Period 1",
-"Sociology",
-"Psychology",
-"Media",
-"Business"
-],
-"Thursday": [
-"Psychology",
-"Sociology",
-"Psychology",
-"Business",
-"Sociology"
-],
-"Friday": [
-"Period 1",
-"Media",
-"Business",
-"Period 4",
-"Sociology"
-]
-}
-},
-"Oliwia": {
-"color": "pink",
-"Week 1": {
-"Monday": [
-"Maths",
-"Sociology",
-"Media Lesson 10",
-"Psychology Lesson 10",
-"Period 5"
-],
-"Tuesday": [
-"Maths",
-"TPE",
-"Media Lesson 10",
-"Psychology",
-"Period 5"
-],
-"Wednesday": [
-"Maths",
-"Psychology",
-"Sociology",
-"Maths",
-"Maths"
-],
-"Thursday": [
-"Psychology",
-"Sociology",
-"Sociology",
-"Maths",
-"Biology"
-],
-"Friday": [
-"Psychology",
-"Media",
-"Maths",
-"Period 4",
-"Sociology"
-]
-},
-"Week 2": {
-"Monday": [
-"Maths",
-"Sociology",
-"Media Lesson 10",
-"Psychology Lesson 10",
-"Period 5"
-],
-"Tuesday": [
-"Maths",
-"TPE",
-"Citizenship",
-"Psychology",
-"Psychology"
-],
-"Wednesday": [
-"Sociology",
-"Psychology",
-"Sociology",
-"Maths",
-"Maths"
-],
-"Thursday": [
-"Psychology",
-"Sociology",
-"Sociology",
-"Maths",
-"Biology"
-],
-"Friday": [
-"Psychology",
-"Media",
-"Maths",
-"Period 4",
-"Sociology"
-]
-}
-},
-"Prinson": {
-"color": "darkgreen",
-"Week 1": {
-"Monday": [
-"Chemistry",
-"Chemistry",
-"Biology Lesson 10",
-"Psychology CTEC Busin.",
-"Period 5"
-],
-"Tuesday": [
-"Biology",
-"Chemistry",
-"Psychology",
-"Psychology",
-"Psychology"
-],
-"Wednesday": [
-"Biology",
-"Psychology",
-"Biology",
-"Biology",
-"Maths"
-],
-"Thursday": [
-"Chemistry",
-"Chemistry",
-"Chemistry",
-"Biology",
-"Sociology"
-],
-"Friday": [
-"Biology",
-"Sociology",
-"Maths",
-"Period 4",
-"Chemistry"
-]
-},
-"Week 2": {
-"Monday": [
-"Chemistry",
-"Chemistry",
-"Biology Lesson 10",
-"Psychology CTEC Busin.",
-"Period 5"
-],
-"Tuesday": [
-"Biology",
-"TPE",
-"Psychology",
-"Psychology",
-"CTEC Business"
-],
-"Wednesday": [
-"Biology",
-"Psychology",
-"Biology",
-"Media",
-"CTEC Business"
-],
-"Thursday": [
-"Chemistry",
-"Chemistry",
-"Chemistry",
-"Biology",
-"Sociology"
-],
-"Friday": [
-"Biology",
-"Sociology",
-"Maths",
-"Period 4",
-"Chemistry"
-]
-}
-},
-"Hanan": {
-"color": "red",
-"Week 1": {
-"Monday": [
-"EPQ",
-"Media",
-"Media Lesson 10",
-"Health & Social Care",
-"Health & Social Care"
-],
-"Tuesday": [
-"Media",
-"Health & Social Care",
-"Maths re-take",
-"CTEC Business",
-"CTEC Business"
-],
-"Wednesday": [
-"Health & Social Care",
-"TPE",
-"Psychology",
-"Biology",
-"CTEC Business"
-],
-"Thursday": [
-"CTEC Business",
-"Sociology",
-"CTEC Business",
-"Maths",
-"Health & Social Care"
-],
-"Friday": [
-"CTEC Business",
-"Sociology",
-"Media",
-"Period 4",
-"Sociology"
-]
-},
-"Week 2": {
-"Monday": [
-"EPQ",
-"Media",
-"Media Lesson 10",
-"Health & Social Care",
-"Health & Social Care"
-],
-"Tuesday": [
-"Media",
-"Health & Social Care",
-"Citizenship",
-"Citizenship",
-"CTEC Business"
-],
-"Wednesday": [
-"Health & Social Care",
-"CTEC Business",
-"CTEC Business",
-"Media",
-"TPE"
-],
-"Thursday": [
-"CTEC Business",
-"Sociology",
-"CTEC Business",
-"Maths re-take",
-"Health & Social Care"
-],
-"Friday": [
-"CTEC Business",
-"Sociology",
-"Media",
-"Period 4",
-"Sociology"
-]
-}
-},
-"Hannah": {
-"color": "yellow",
-"Week 1": {
-"Monday": [
-"EPQ",
-"Media",
-"Biology Lesson 10",
-"CTEC Business",
-"Health & Social Care"
-],
-"Tuesday": [
-"Media",
-"Health & Social Care",
-"Health & Social Care",
-"CTEC Business",
-"CTEC Business"
-],
-"Wednesday": [
-"Health & Social Care",
-"CTEC Business",
-"CTEC Business",
-"Business",
-"Media"
-],
-"Thursday": [
-"CTEC Business",
-"Sociology",
-"CTEC Business",
-"Maths",
-"Media"
-],
-"Friday": [
-"CTEC Business",
-"Sociology",
-"Media",
-"Health & Social Care",
-"Health & Social Care"
-]
-},
-"Week 2": {
-"Monday": [
-"EPQ",
-"Media",
-"Biology Lesson 10",
-"CTEC Business",
-"Health & Social Care"
-],
-"Tuesday": [
-"Media",
-"Health & Social Care",
-"Citizenship",
-"Citizenship",
-"CTEC Business"
-],
-"Wednesday": [
-"Health & Social Care",
-"CTEC Business",
-"CTEC Business",
-"Business",
-"Media"
-],
-"Thursday": [
-"CTEC Business",
-"Sociology",
-"CTEC Business",
-"Maths",
-"Media"
-],
-"Friday": [
-"CTEC Business",
-"Sociology",
-"Media",
-"Health & Social Care",
-"Health & Social Care"
-]
-}
-},
-"metadata": {
-"periods": 5,
-"period_names": [
-"Period 1",
-"Period 2",
-"Period 3",
-"Period 4",
-"Period 5"
-],
-"days": [
-"Monday",
-"Tuesday",
-"Wednesday",
-"Thursday",
-"Friday"
-],
-"weeks": [
-"Week 1",
-"Week 2"
-]
-}
+  "Alex": {
+    "color": "var(--color-blue)",
+    "Week 1": {
+      "Monday": ["Business", "Sociology", "Media Lesson 10", "Free Period", "Free Period"],
+      "Tuesday": ["Media", "Business", "Free Period", "Sociology", "Free Period"],
+      "Wednesday": ["Free Period", "Free Period", "Free Period", "Media", "Business"],
+      "Thursday": ["Free Period", "Sociology Lesson 10", "Sociology", "Business", "Media"],
+      "Friday": ["Free Period", "Media Lesson 10", "Business", "Sociology", "Free Period"]
+    },
+    "Week 2": {
+      "Monday": ["Business", "Sociology", "Business Lesson 10", "Media", "Free Period"],
+      "Tuesday": ["Media", "Business", "TPE", "Citizenship", "Free Period"],
+      "Wednesday": ["Free Period", "Sociology", "Free Period", "Media", "Business"],
+      "Thursday": ["Free Period", "Sociology", "Sociology", "Free Period", "Media"],
+      "Friday": ["Free Period", "Media", "Business", "Free Period", "Sociology"]
+    }
+  },
+  "Oliwia": {
+    "color": "var(--color-pink)",
+    "Week 1": {
+      "Monday": ["Maths", "Free Period", "Sociology Lesson 10", "Psychology Lesson 10", "Free Period"],
+      "Tuesday": ["Sociology", "Maths", "Free Period", "Maths Lesson 10", "Psychology"],
+      "Wednesday": ["Free Period", "TPE", "Psychology", "Sociology", "Maths"],
+      "Thursday": ["Psychology", "Free Period", "Free Period", "Maths", "Sociology"],
+      "Friday": ["Maths", "Sociology", "Media Lesson 10", "Psychology Lesson 10", "Media"]
+    },
+    "Week 2": {
+      "Monday": ["Maths", "Free Period", "Psychology", "Sociology", "Free Period"],
+      "Tuesday": ["Sociology", "Maths", "Free Period", "Citizenship", "Psychology"],
+      "Wednesday": ["Free Period", "Free Period", "Psychology", "Sociology", "Maths"],
+      "Thursday": ["Psychology", "Free Period", "Free Period", "Free Period", "Sociology"],
+      "Friday": ["Maths", "Sociology", "Media Lesson 10", "Psychology Lesson 10", "Media"]
+    }
+  },
+  "Prinson": {
+    "color": "var(--color-darkgreen)",
+    "Week 1": {
+      "Monday": ["Free Period", "Chemistry Lesson 10", "Biology", "Psychology Lesson 10", "Free Period"],
+      "Tuesday": ["Biology", "Free Period", "Free Period", "Chemistry", "Psychology"],
+      "Wednesday": ["EQA", "TPE", "Psychology", "Biology", "Free Period"],
+      "Thursday": ["Psychology", "Chemistry", "Chemistry", "Free Period", "Biology"],
+      "Friday": ["EQA", "TPE", "Chemistry", "Biology", "Free Period"]
+    },
+    "Week 2": {
+      "Monday": ["Free Period", "Chemistry", "Psychology", "Biology Lesson 10", "Free Period"],
+      "Tuesday": ["Biology", "Free Period", "Free Period", "Citizenship", "Psychology"],
+      "Wednesday": ["EQA", "Chemistry", "Psychology", "Biology", "Free Period"],
+      "Thursday": ["Psychology", "Chemistry", "Chemistry", "Free Period", "Biology"],
+      "Friday": ["EQA", "TPE", "Chemistry", "Biology", "Free Period"]
+    }
+  },
+  "Hanan": {
+    "color": "var(--color-red)",
+    "Week 1": {
+      "Monday": ["Free Period", "Sociology", "Media Lesson 10", "CTEC Business", "Free Period"],
+      "Tuesday": ["Media", "Free Period", "Free Period", "Sociology", "CTEC Business"],
+      "Wednesday": ["Free Period", "Free Period", "CTEC Business Lesson 10", "Media", "Free Period"],
+      "Thursday": ["CTEC Business", "Sociology", "Sociology", "Free Period", "Media"],
+      "Friday": ["CTEC Business", "Sociology", "Media", "CTEC Business", "CTEC Business"]
+    },
+    "Week 2": {
+      "Monday": ["Free Period", "Sociology", "CTEC Business", "Media", "Free Period"],
+      "Tuesday": ["Media", "Free Period", "TPE", "Citizenship", "CTEC Business"],
+      "Wednesday": ["Free Period", "Sociology", "CTEC Business", "Media", "Free Period"],
+      "Thursday": ["CTEC Business", "Sociology", "Sociology", "Free Period", "Media"],
+      "Friday": ["CTEC Business", "Sociology", "Media", "CTEC Business", "CTEC Business"]
+    }
+  },
+  "Hannah": {
+    "color": "var(--color-yellow)",
+    "Week 1": {
+      "Monday": ["EQA", "Free Period", "Media Lesson 10", "CTEC Business", "Health & Social Care"],
+      "Tuesday": ["Media", "Free Period", "Health & Social Care", "Maths re-take", "CTEC Business"],
+      "Wednesday": ["Health & Social Care", "Health & Social Care", "CTEC Business Lesson 10", "Media", "Free Period"],
+      "Thursday": ["CTEC Business", "Sociology", "CTEC Business", "Maths", "Media"],
+      "Friday": ["CTEC Business", "Sociology", "Media", "Health & Social Care", "Health & Social Care"]
+    },
+    "Week 2": {
+      "Monday": ["EQA", "Free Period", "CTEC Business", "Media", "Health & Social Care"],
+      "Tuesday": ["Media", "Free Period", "Health & Social Care", "Citizenship", "CTEC Business"],
+      "Wednesday": ["Health & Social Care", "maths re-take", "CTEC Business", "Media", "TPE"],
+      "Thursday": ["CTEC Business", "maths re-take", "CTEC Business", "Maths", "Media"],
+      "Friday": ["CTEC Business", "Sociology", "Media", "Health & Social Care", "Health & Social Care"]
+    }
+  }
 }
