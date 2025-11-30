@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-    <title>Timetable App</title>
+    <title>Fuckass Timetable</title>
     <style>
         /* ** THEME VARIABLES (Light Mode Default) ** */
         :root{
@@ -26,392 +26,363 @@
             --color-pink: #e91e63;
             --color-yellow: #ffeb3b;
             --color-darkgreen: #00796b;
-            --color-purple: #9c27b0; /* Added */
-            --color-orange: #ff9800; /* Added */
         }
 
         /* ** DARK MODE OVERRIDES ** */
         body.dark-mode {
             --bg: #111111;
-            --text: #ffffff;
-            --card: #222222;
-            --card-border: #333;
-            --muted: #888;
-            --input-bg: #333;
-            --input-border: #555;
-            --primary-btn-bg: #f7f7f8;
+            --text: #f0f0f0;
+            --card: #1c1c1e;
+            --card-border: #333333;
+            --muted: #b0b0b0;
+            --input-bg: #2c2c2e;
+            --input-border: #444;
+            --primary-btn-bg: #eeeeee;
             --primary-btn-text: #111;
-            --secondary-btn-bg: #111;
-            --secondary-btn-border: #888;
-            --soft-shadow: 0 6px 18px rgba(0,0,0,0.4);
+            --secondary-btn-bg: #1c1c1e;
+            --secondary-btn-border: #444;
+            --soft-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+            --yellow-light: #ffc107;
         }
 
-        /* ** GLOBAL STYLES ** */
+        /* Base Styles */
+        html,body{
+            height:100%;
+            margin:0;
+            font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+            background:var(--bg);
+            color:var(--text); 
+            overflow-x: hidden;
+            transition: background 0.3s, color 0.3s;
+        }
+        
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center; 
+            min-height: 100vh;
+            overflow-y: auto;
+            padding: 20px 0; 
+        }
+        
+        .wrap{
+            max-width:470px;
+            width: 95%; 
+            padding:16px;
+            box-sizing: border-box; 
+        }
+        
+        .title {
+            font-weight:700;
+            text-align:center;
+            letter-spacing:-0.6px;
+            margin-bottom:12px;
+            position:relative;
+        }
+        
+        /* Catchphrase Styles */
+        .tag {
+            /* Fix: Make the width fit the content */
+            display: inline-block; /* Keep inline-block for positioning next to other inline content */
+            width: fit-content; /* This is the key property */
+
+            margin-top: 4px;
+            color:#333333 !important;
+            background:linear-gradient(90deg, var(--yellow-light), rgba(255,248,200,0.95));
+            padding: 4px 8px;
+            border-radius: 8px;
+            box-shadow: var(--soft-shadow);
+            opacity:0;
+            animation: fadeIn 500ms ease forwards;
+            font-weight: 600;
+            font-size: 15px; 
+            line-height: 1.2; 
+            border: 1px solid rgba(0,0,0,0.1);
+            animation-delay: 50ms; 
+        }
+        
+        @keyframes fadeIn{
+            from { opacity:0; transform:translateY(5px); }
+            to { opacity:1; transform:translateY(0); }
+        }
+
+        /* --- START NEW ANIMATED DARK MODE TOGGLE STYLES --- */
+        
+        .dark-mode-toggle-container {
+            position: absolute;
+            left: 10px;
+            top: 25px; /* Aligned with H1 center */
+            transform: translateY(-50%);
+            z-index: 10;
+        }
+
+        .dark-mode-toggle {
+            border: 0;
+            background: transparent;
             padding: 0;
-            transition: background-color 0.3s, color 0.3s;
-            display: flex;
-            justify-content: center;
-            padding-top: 20px;
-            padding-bottom: 20px;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 400px;
-            padding: 16px;
-            box-sizing: border-box;
-        }
-
-        /* ** TYPOGRAPHY ** */
-        h1 {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-        
-        .header-section {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        /* ** CARD/SECTION STYLES ** */
-        .card {
-            background-color: var(--card);
-            border: 1px solid var(--card-border);
-            border-radius: var(--radius);
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: var(--soft-shadow);
-        }
-
-        .section-separator {
-            margin: 15px 0 10px 0;
-            border: none;
-            border-top: 1px solid var(--card-border);
-        }
-
-        label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: var(--text);
-        }
-
-        /* ** INPUTS AND SELECTS ** */
-        select, input[type="text"] {
-            width: 100%;
-            padding: 12px;
             margin: 0;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            border: 1px solid var(--input-border);
-            background-color: var(--input-bg);
-            color: var(--text);
-            box-sizing: border-box;
-            transition: border-color 0.2s;
-            appearance: none; /* Remove default styling */
-        }
-        select:focus, input[type="text"]:focus {
-            outline: none;
-            border-color: var(--primary-btn-bg);
-        }
-
-        .row {
-            display: flex;
-            gap: 10px;
-        }
-        .row > * {
-            flex-grow: 1;
+            cursor: pointer;
+            line-height: 0; 
+            width: 28px;
+            height: 28px;
         }
         
-        /* ** BUTTONS ** */
-        .btn {
-            padding: 12px 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: background-color 0.2s, box-shadow 0.2s, color 0.2s;
-            width: 100%;
-            box-sizing: border-box;
+        /* Sun color in light mode, Moon color in dark mode (driven by currentColor) */
+        .dark-mode-toggle__icon {
+            width: 28px;
+            height: 28px;
+            color: var(--yellow-light); 
+            transition: color .2s linear;
         }
-        .btn-primary {
-            background-color: var(--primary-btn-bg);
-            color: var(--primary-btn-text);
-        }
-        .btn-primary:hover {
+
+        /* Icon color switch for dark mode */
+        body.dark-mode .dark-mode-toggle__icon {
+            color: var(--text); /* Changes to off-white/white in dark mode */
             opacity: 0.9;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        .btn-secondary {
-            background-color: var(--secondary-btn-bg);
-            color: var(--text);
-            border: 1px solid var(--input-border);
-        }
-        .btn-secondary:hover {
-            opacity: 0.8;
         }
         
-        /* ** DARK MODE TOGGLE ** */
-        #darkModeToggle {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: var(--card);
-            border: 1px solid var(--card-border);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            line-height: 1;
-            transition: background-color 0.3s, border-color 0.3s;
-        }
-        #darkModeToggle:hover {
-            background-color: var(--card-border);
-        }
-        
-        /* ** Custom Alert Modal ** */
-        #confirmModal {
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.6);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-        .alert-content {
-            background-color: var(--card);
-            padding: 20px;
-            border-radius: var(--radius);
-            box-shadow: var(--soft-shadow);
-            max-width: 300px;
-            width: 100%;
-            text-align: center;
-        }
-        .alert-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        .alert-content p {
-            margin-bottom: 20px;
-            line-height: 1.5;
-        }
-        .modalClose {
-            cursor: pointer;
-            font-size: 24px;
-            font-weight: 300;
-            line-height: 1;
-            color: var(--muted);
-        }
-        .modalClose:hover {
-            color: var(--text);
+        .dark-mode-toggle__rays {
+            transition: opacity .2s linear .2s;
         }
 
-        /* ** Daily Schedule Modal ** */
+        /* Rays disappear in dark mode */
+        body.dark-mode .dark-mode-toggle__rays {
+            transition: opacity .2s linear;
+            opacity: 0;
+        }
+
+        .dark-mode-toggle__cut-out {
+            transition: transform .5s cubic-bezier(0.54,-0.42, 0.29, 1.3);
+        }
+
+        /* Moon phase animation */
+        body.dark-mode .dark-mode-toggle__cut-out {
+            transform: translateX(-30%);
+            transition: transform .5s cubic-bezier(0.21, 0.17, 0.43, 1.43);
+        }
+        
+        /* --- END NEW ANIMATED DARK MODE TOGGLE STYLES --- */
+
+
+        .card { background:var(--card); border-radius:var(--radius); padding:14px; box-shadow:var(--soft-shadow); margin-bottom:12px; transition: background 0.3s, box-shadow 0.3s; }
+        label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px; transition: color 0.3s;}
+        
+        /* Form Elements */
+        select, button, input[type="text"] {
+            width:100%; padding:12px 14px; border-radius:12px; border:2px solid var(--input-border); outline:none; font-size:15px;
+            background:var(--input-bg); color:var(--text); box-sizing:border-box;
+            min-width: 0; transition: background 0.3s, border-color 0.3s, color 0.3s;
+            margin-bottom: 0; 
+        }
+        
+        .select-group select {
+            margin-bottom: 10px; 
+        }
+
+        .row{
+            display:flex;
+            gap:10px;
+            flex-wrap: wrap; 
+        }
+        .row > * { 
+            flex:1; 
+            min-width: 100%; 
+        }
+        
+        @media (min-width: 380px) {
+            .row > * {
+                min-width: 0; 
+            }
+        }
+        
+        .row select {
+             margin-bottom: 8px; 
+        }
+        .btn { cursor:pointer; border:none; font-weight:700; background:var(--primary-btn-bg);color:var(--primary-btn-text); border-radius:12px;padding:12px; transition:transform .18s ease, background 0.3s, color 0.3s; }
+        .btn:active{ transform:scale(.98); }
+        #lessonBtn { background:var(--secondary-btn-bg);color:var(--text);border:2px solid var(--secondary-btn-border); }
+
+        .result { padding:12px; margin-top:12px; border-radius:12px; background:var(--input-bg); border:1px solid var(--card-border); min-height:60px; transition: background 0.3s, border-color 0.3s; }
+        .person { display:flex; gap:10px; align-items:center; padding:8px; border-radius:10px; margin-bottom:8px; }
+        .swatch{width:14px;height:14px;border-radius:5px;box-shadow:0 2px 6px rgba(0,0,0,0.06);}
+        .muted{color:var(--muted);font-size:13px}
+        .extra { margin-top:8px; display:flex; gap:8px; }
+        .small { padding:8px 10px; font-size:14px; border-radius:10px; background:var(--input-bg); border:1px solid var(--card-border); color:var(--text); cursor:pointer; transition: background 0.3s, border-color 0.3s, color 0.3s; }
+        .collapse { max-height:0; overflow:hidden; transition:max-height .35s cubic-bezier(.2,.9,.3,1); }
+        .collapse.open { max-height:420px; }
+        hr { border-top-color: var(--card-border) !important; transition: border-top-color 0.3s; }
+
+        .person { transform: translateY(6px); opacity:0; animation: personIn .35s forwards; }
+        /* Staggered delay for person list */
+        .person:nth-child(2){ animation-delay:50ms } 
+        .person:nth-child(3){ animation-delay:100ms }
+        .person:nth-child(4){ animation-delay:150ms } 
+        .person:nth-child(5){ animation-delay:200ms } 
+        @keyframes personIn { to{ transform:none; opacity:1 } from { transform:translateY(6px); opacity:0 } }
+
+        /* Custom Message Modal Styles */
+        #confirmModal{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(10,10,10,0.55); z-index:2000; }
+        .modal{ width:90%; max-width:420px; background:var(--card); border-radius:12px; padding:14px; box-shadow:var(--soft-shadow); color:var(--text); transition: background 0.3s; }
+        .tiny{font-size:13px;color:var(--muted); margin-top:8px}
+        
+        /* Schedule Modal Styles */
         .scheduleModalBack {
             position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.6);
-            display: none; /* Controlled by JS */
+            inset: 0;
+            background: rgba(10, 10, 10, 0.75);
+            z-index: 1010;
+            display: none;
             align-items: center;
             justify-content: center;
-            padding: 10px;
-            box-sizing: border-box;
+            backdrop-filter: blur(5px);
         }
         .scheduleModal {
-            background-color: var(--card);
-            border-radius: var(--radius);
-            box-shadow: var(--soft-shadow);
+            width: 90%;
             max-width: 400px;
-            width: 100%;
-            max-height: 90vh;
-            display: flex;
-            flex-direction: column;
+            max-height: 80vh; 
+            background: var(--card);
+            border-radius: 18px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow-y: auto; 
+            transition: background 0.3s;
         }
         .scheduleHeader {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 20px;
-            border-bottom: 1px solid var(--card-border);
+            margin-bottom: 15px;
         }
-        #modalScheduleContent {
-            padding: 20px;
-            overflow-y: auto;
-        }
-        .schedule-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .schedule-table th, .schedule-table td {
-            padding: 12px;
-            text-align: left;
-        }
-        .schedule-table thead th {
-            font-weight: 700;
+        .scheduleRow{ display: flex; gap: 8px; margin: 6px 0; align-items: center; }
+        .scheduleCell{ padding: 8px; border-radius: 8px; border: 1px solid var(--card-border); text-align: left; background: var(--input-bg); transition: background 0.3s; }
+        .pnum { width: 50px; text-align: center; font-weight: 600; flex-shrink: 0; background: var(--card); color: var(--text); border: 1px solid var(--card-border); }
+        .subj { flex-grow: 1; }
+        
+        .modalClose {
+            font-size: 24px;
+            font-weight: 300;
+            cursor: pointer;
             color: var(--muted);
-            border-bottom: 2px solid var(--card-border);
-            position: sticky;
-            top: 0;
-            background-color: var(--card);
-            z-index: 10;
-        }
-        .schedule-table tbody tr {
-            border-bottom: 1px solid var(--card-border);
-            transition: background-color 0.1s;
-        }
-        .schedule-table tbody tr:last-child {
-            border-bottom: none;
-        }
-        .schedule-row {
-            display: table-row;
-        }
-        .period-col {
-            font-weight: 700;
-            width: 80px;
         }
         
-        /* ** Catchphrase section styles ** */
-        .catchphrase-section {
-            padding: 10px 0;
-        }
-        #refreshTag {
-            font-size: 16px;
-            font-style: italic;
-            cursor: pointer;
-            display: block;
-            margin-bottom: 10px;
-            min-height: 20px;
-            text-align: center;
-        }
-        .fade-in {
-            animation: fadeIn 0.5s ease-in-out;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        /* ** Color-specific text classes for consistency ** */
-        .color-text-red { color: var(--color-red); }
-        .color-text-blue { color: var(--color-blue); }
-        .color-text-pink { color: var(--color-pink); }
-        .color-text-yellow { color: var(--color-yellow); }
-        .color-text-darkgreen { color: var(--color-darkgreen); }
-        .color-text-purple { color: var(--color-purple); }
-        .color-text-orange { color: var(--color-orange); }
-
-        .color-border-red { border-left: 4px solid var(--color-red); }
-        .color-border-blue { border-left: 4px solid var(--color-blue); }
-        .color-border-pink { border-left: 4px solid var(--color-pink); }
-        .color-border-yellow { border-left: 4px solid var(--color-yellow); }
-        .color-border-darkgreen { border-left: 4px solid var(--color-darkgreen); }
-        .color-border-purple { border-left: 4px solid var(--color-purple); }
-        .color-border-orange { border-left: 4px solid var(--color-orange); }
-
-        /* Ensure selects and buttons are consistent on mobile */
-        @media (max-width: 500px) {
-            .row {
-                flex-direction: column;
-                gap: 0;
+        @media (max-width:420px){
+            .wrap{
+                padding:12px;
             }
-            .row > * {
-                margin-bottom: 10px;
-            }
+            .title h1{font-size:26px}
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <div class="header-section">
-            <div style="flex-grow:1;">
-                <h1>Timetable Finder</h1>
-                <p id="userIdDisplay" style="font-size:12px; margin:0; color:var(--muted)">Connecting...</p>
-            </div>
-            <button id="darkModeToggle" class="btn-secondary" title="Toggle Dark Mode">
-                🌙
-            </button>
-        </div>
+    <div class="wrap">
+        <div class="title card">
+            
 
-        <!-- Catchphrases Section (Personal/Private Data) -->
-        <div class="card">
-            <div class="catchphrase-section">
-                <label>Daily Catchphrase (Click to Refresh)</label>
-                <span id="refreshTag">Loading your phrases...</span>
+<div class="dark-mode-toggle-container">
+                <button id="darkModeToggle" class="dark-mode-toggle" aria-label="Toggle Dark Mode">
+                    <svg class="dark-mode-toggle__icon" width="28" height="28" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <mask id="mask">
+                                <rect x="0" y="0" width="100%" height="100%" fill="white" />
+                                
+
+<circle class="dark-mode-toggle__cut-out" r="6" cx="24" cy="10" fill="black" />
+                            </mask>
+                        </defs>
+                        
+
+<circle class="dark-mode-toggle__center-circle" r="6" cx="12" cy="12" fill="currentColor" mask="url(#mask)" />
+                        
+                        
+
+<g class="dark-mode-toggle__rays" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                            <line x1="12" x2="12" y1="3" y2="1" />
+                            <line x1="21" x2="23" y1="12" y2="12" />
+                            <line x1="12" x2="12" y1="21" y2="23" />
+                            <line x1="1" x2="3" y1="12" y2="12" />
+                        </g>
+                        
+
+<g class="dark-mode-toggle__rays" stroke="currentColor" stroke-width="2" stroke-linecap="round" transform="rotate(45 12 12)">
+                            <line x1="12" x2="12" y1="3" y2="1" />
+                            <line x1="21" x2="23" y1="12" y2="12" />
+                            <line x1="12" x2="12" y1="21" y2="23" />
+                            <line x1="1" x2="3" y1="12" y2="12" />
+                        </g>
+                    </svg>
+                </button>
             </div>
             
-            <div class="section-separator"></div>
+            
 
-            <label>Add a new phrase</label>
-            <div class="row">
-                <input type="text" id="newPhraseInput" placeholder="E.g., Another day, another lesson...">
-                <button id="addPhraseBtn" class="btn btn-primary" style="flex-grow:0; width:100px;">Add</button>
-            </div>
+<h1 style="font-size:28px; margin: 0 0 4px 0; font-weight:700;">Fuckass Timetable</h1>
+            
+            
+
+<div id="randomTag" class="tag" aria-hidden="true"></div>
         </div>
 
-        <!-- Timetable Finder Section (Shared/Public Data) -->
         <div class="card">
-            <h2>Timetable Lookup</h2>
-
-            <!-- Find Single Lesson -->
-            <div style="padding-bottom:12px;">
-                <label>Who has what, when?</label>
-                <div class="row">
-                    <select id="whoSelect" title="Select Person"></select>
-                    <select id="weekSelect" title="Select Week"></select>
-                </div>
-                <div class="row">
-                    <select id="daySelect" title="Select Day"></select>
-                    <select id="periodSelect" title="Select Period">
-                        <option value="1">Period 1</option>
-                        <option value="2">Period 2</option>
-                        <option value="3">Period 3</option>
-                        <option value="4">Period 4</option>
-                        <option value="5">Period 5</option>
-                    </select>
-                </div>
-                <button id="findBtn" class="btn btn-primary" style="margin-top:10px;">Find Lesson</button>
+            <div class="select-group">
+                <label>Week</label>
+                <select id="weekSelect"></select>
             </div>
 
-            <div class="section-separator"></div>
+            <div class="select-group">
+                <label style="margin-top:10px">Day</label>
+                <select id="daySelect"></select>
+            </div>
 
-            <!-- Show Full Day Schedule -->
-            <div style="padding:12px 0;">
+            <div class="select-group">
+                <label style="margin-top:10px">Period</label>
+                <select id="periodSelect">
+                    <option value="1">Period 1</option>
+                    <option value="2">Period 2</option>
+                    <option value="3">Period 3</option>
+                    <option value="4">Period 4</option>
+                    <option value="5">Period 5</option>
+                </select>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:12px;">
+                <button class="btn" id="checkBtn">Check who's free</button>
+                <button class="btn" id="lessonBtn" style="background:var(--secondary-btn-bg);color:var(--text);border:2px solid var(--secondary-btn-border);">Who has a lesson</button>
+            </div>
+
+            <div id="resultArea" class="result"></div>
+        </div>
+
+        <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div><strong>Extra features</strong><div class="tiny">Add catchphrase / What do I have today</div></div>
+                <button id="toggleExtra" class="small">Show</button>
+            </div>
+
+            <div id="extraPanel" class="collapse">
+                <div style="margin-top:12px;">
+                    <label>Add a catchphrase</label>
+                    <input type="text" id="phraseInput" placeholder="Type phrase...">
+                    <div style="display:flex; gap:8px; margin-top:8px;">
+                        <button id="addPhraseBtn" class="small">Add phrase</button>
+                        <button id="refreshTag" class="small">Refresh random tag</button>
+                    </div>
+                </div>
+
+                <hr style="margin:12px 0;border:none;border-top:1px solid var(--card-border);">
+
                 <div>
                     <label>What do I have today?</label>
                     <div class="row">
-                        <select id="whoSelect2" title="Select Person"></select>
-                        <select id="weekSelect2" title="Select Week"></select>
+                        <select id="whoSelect"></select>
+                        <select id="weekSelect2"></select>
                     </div>
-                    <select id="daySelect2" title="Select Day" style="margin-top:8px;width:100%"></select>
-                    <button id="whatBtn" class="btn btn-primary" style="margin-top:10px">Show my day</button>
+                    <select id="daySelect2" style="margin-top:8px;width:100%"></select>
+                    <button id="whatBtn" class="btn" style="margin-top:10px">Show my day</button>
                 </div>
             </div>
         </div>
 
-        <div style="text-align:center; color:var(--muted); font-size:13px; margin-top:8px">Built by Alessandro 2025</div>
+        <div style="text-align:center; color:var(--muted); font-size:13px; margin-top:8px">Made for iPhone — © Alessandro 2025</div>
     </div>
 
     <!-- Custom Modal for Alerts/Confirmations (hidden by default) -->
@@ -431,479 +402,6 @@
     </div>
 
 <!-- The script that handles all the Firebase data, button clicks, and logic -->
-<script type="module">
-// Firebase Imports (MUST use cdn links provided by the environment)
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, onSnapshot, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-// Global Variables
-let db;
-let auth;
-let userId = null;
-let isAuthReady = false;
-let peopleData = []; // User list derived from timetableData keys
-let timetableData = {}; // Timetable data fetched from Firestore
-let currentCatchphrases = []; // Catchphrases fetched from Firestore
-
-// --- Configuration and Initialization ---
-
-// Mandatory Canvas environment variables
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
-const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-// Mock Data (Used until Firestore data loads or if data is missing)
-const MOCK_PEOPLE = [
-    { id: 'mockuser', name: 'MOCK USER', color: 'var(--color-red)' },
-];
-const MOCK_TIMETABLE = {
-    "MOCK USER": {
-        "color": "red",
-        "Week 1": { "Monday": ["Business", "Sociology", "Psychology", "Period 4", "Period 5"] },
-        "Week 2": { "Monday": ["Business", "Sociology", "Psychology", "Business Lesson 10", "Media"] }
-    }
-};
-
-
-// --- Utility Functions ---
-
-/**
- * Custom safe display function for non-critical messages, avoiding native alerts.
- * @param {string} title
- * @param {string} message
- */
-const showCustomAlert = (title, message) => {
-    const modal = document.getElementById('confirmModal');
-    modal.style.display = 'flex'; // Use flex for centering
-    modal.innerHTML = `
-        <div class="alert-content">
-            <div class="alert-header">
-                <h3>${title}</h3>
-                <span class="modalClose" onclick="document.getElementById('confirmModal').style.display='none'">&times;</span>
-            </div>
-            <p>${message}</p>
-            <button class="btn btn-primary" onclick="document.getElementById('confirmModal').style.display='none'">OK</button>
-        </div>
-    `;
-};
-
-
-// --- Firebase & Data Listeners ---
-
-/**
- * Sets up Firebase initialization and authentication.
- */
-const setupFirebase = async () => {
-    if (!firebaseConfig) {
-        console.error("Firebase config is missing. Cannot initialize.");
-        showCustomAlert("Error", "Firebase configuration is missing. The app cannot load data.");
-        return;
-    }
-
-    setLogLevel('debug');
-    const app = initializeApp(firebaseConfig);
-    db = getFirestore(app);
-    auth = getAuth(app);
-
-    // 1. Authentication
-    if (initialAuthToken) {
-        try {
-            await signInWithCustomToken(auth, initialAuthToken);
-        } catch (error) {
-            console.error("Error signing in with custom token:", error);
-            await signInAnonymously(auth);
-        }
-    } else {
-        await signInAnonymously(auth);
-    }
-
-    // 2. Auth State Listener
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            userId = user.uid;
-            isAuthReady = true;
-            console.log("Firebase Auth Ready. User ID:", userId);
-
-            // Start listening for data now that we are authenticated
-            setupTimetableListener();
-            setupCatchphraseListener();
-            updateUserIdUI();
-        } else {
-            console.log("No user signed in.");
-            userId = null;
-            isAuthReady = true;
-        }
-    });
-};
-
-/**
- * Sets up real-time listener for the Timetable data from Firestore.
- * This is updated to use the direct path 'timetable/data' based on your screenshot.
- */
-const setupTimetableListener = () => {
-    if (!db || !isAuthReady) {
-        console.error("Database not ready for Timetable Listener.");
-        return;
-    }
-
-    // *** PATH FOR PUBLIC/SHARED DATA ***
-    const timetableDocRef = doc(db, `timetable/data`);
-
-    onSnapshot(timetableDocRef, (docSnap) => {
-        if (docSnap.exists()) {
-            timetableData = docSnap.data();
-            console.log("Timetable Data updated from Firestore:", timetableData);
-            
-            // Re-populate data structures and UI based on new timetableData
-            peopleData = Object.keys(timetableData).map(name => ({
-                id: name.toLowerCase(),
-                name: name,
-                // Ensure color field exists in the data, or default to 'red'
-                color: `var(--color-${timetableData[name].color || 'red'})` 
-            }));
-            
-            // If data is empty after fetch, use mock data
-            if (peopleData.length === 0) {
-                 timetableData = MOCK_TIMETABLE; 
-                 peopleData = MOCK_PEOPLE;
-                 console.log("Firestore data was empty, switching to mock data.");
-            }
-
-            populateSelects();
-
-        } else {
-            console.warn("No timetable data found at 'timetable/data'. Using mock data.");
-            // Fallback to mock data if the document is missing
-            timetableData = MOCK_TIMETABLE; 
-            peopleData = MOCK_PEOPLE;
-            populateSelects();
-            showCustomAlert("Setup Warning", "Timetable data not found in Firestore at `timetable/data`. Using mock data.");
-        }
-    }, (error) => {
-        console.error("Error fetching timetable data:", error);
-        showCustomAlert("Data Error", "Could not load the shared timetable data from Firestore. Check console for details.");
-    });
-};
-
-/**
- * Sets up real-time listener for the user's catchphrases from Firestore.
- */
-const setupCatchphraseListener = () => {
-    if (!db || !userId) {
-        // If not ready, this will be called again once auth is complete
-        return;
-    }
-
-    // *** PATH FOR PRIVATE/PERSONAL DATA ***
-    // Path: /artifacts/{appId}/users/{userId}/catchphrases/list
-    const catchphraseDocRef = doc(db, `artifacts/${appId}/users/${userId}/catchphrases/list`);
-
-    onSnapshot(catchphraseDocRef, (docSnap) => {
-        if (docSnap.exists()) {
-            // Data is an object, typically { phrases: ["...", "..."] }
-            currentCatchphrases = docSnap.data().phrases || [];
-            console.log("Catchphrases updated from Firestore:", currentCatchphrases.length, "phrases");
-        } else {
-            // Document doesn't exist, initialize with an empty array
-            currentCatchphrases = [];
-            console.log("No catchphrase document found. Initializing storage.");
-        }
-        updateCatchphraseUI(); // Always update UI after data change
-    }, (error) => {
-        console.error("Error fetching catchphrases:", error);
-    });
-};
-
-/**
- * Updates the UI with the current user ID.
- */
-const updateUserIdUI = () => {
-    const userDisplay = document.getElementById('userIdDisplay');
-    if (userDisplay && userId) {
-        // Truncate for display, but full ID is in the console log
-        const displayId = userId.substring(0, 8) + '...'; 
-        userDisplay.textContent = `User: ${displayId}`;
-    } else if (userDisplay) {
-         userDisplay.textContent = `User: Not Signed In`;
-    }
-}
-
-
-// --- Timetable Logic ---
-
-/**
- * Populates the <select> elements for people, weeks, and days.
- */
-const populateSelects = () => {
-    const whoSelects = [document.getElementById('whoSelect'), document.getElementById('whoSelect2')];
-    const weekSelects = [document.getElementById('weekSelect'), document.getElementById('weekSelect2')];
-    const daySelects = [document.getElementById('daySelect'), document.getElementById('daySelect2')];
-
-    if (peopleData.length === 0) {
-        // No data, keep selects empty or show error
-        console.warn("No people data to populate selects.");
-        return;
-    }
-
-    // 1. People Selects
-    whoSelects.forEach(select => {
-        select.innerHTML = '';
-        peopleData.forEach(person => {
-            const option = document.createElement('option');
-            option.value = person.name;
-            option.textContent = person.name;
-            select.appendChild(option);
-        });
-    });
-    
-    // Determine available weeks (use the first person's structure as reference)
-    const firstPersonName = peopleData[0].name;
-    const availableWeeks = timetableData[firstPersonName] 
-        ? Object.keys(timetableData[firstPersonName]).filter(key => key.startsWith('Week'))
-        : ['Week 1', 'Week 2']; // Fallback
-
-    // 2. Week Selects
-    weekSelects.forEach(select => {
-        select.innerHTML = '';
-        availableWeeks.forEach(week => {
-            const option = document.createElement('option');
-            option.value = week;
-            option.textContent = week;
-            select.appendChild(option);
-        });
-    });
-
-    // Determine available days (use Week 1 of the first person as reference)
-    const firstWeek = availableWeeks[0];
-    const availableDays = (firstWeek && timetableData[firstPersonName] && timetableData[firstPersonName][firstWeek]) 
-        ? Object.keys(timetableData[firstPersonName][firstWeek])
-        : ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']; // Fallback
-        
-    // 3. Day Selects
-    daySelects.forEach(select => {
-        select.innerHTML = '';
-        availableDays.forEach(day => {
-            const option = document.createElement('option');
-            option.value = day;
-            option.textContent = day;
-            select.appendChild(option);
-        });
-    });
-};
-
-
-/**
- * Handles the 'Find Lesson' button click.
- */
-const handleFindLesson = () => {
-    const personName = document.getElementById('whoSelect').value;
-    const week = document.getElementById('weekSelect').value;
-    const day = document.getElementById('daySelect').value;
-    const period = parseInt(document.getElementById('periodSelect').value);
-
-    const personSchedule = timetableData[personName];
-
-    if (!personSchedule || !personSchedule[week] || !personSchedule[week][day]) {
-        showCustomAlert("Missing Data", `Schedule data for ${personName}, ${week}, ${day} is missing. Please check Firestore.`);
-        return;
-    }
-
-    const lessons = personSchedule[week][day];
-    const lesson = lessons[period - 1]; // Period 1 is index 0
-    const colorClass = personSchedule.color || 'red';
-
-    if (lesson && lesson.trim() !== '') {
-        showCustomAlert(
-            `Lesson for ${personName}`,
-            `<span class="color-text-${colorClass}">**${personName}** has **${lesson}** in **${week}, ${day}, Period ${period}**.</span>`
-        );
-    } else {
-        showCustomAlert(
-            "Free Period",
-            `<span class="color-text-${colorClass}">${personName} has a **Free Period** in **${week}, ${day}, Period ${period}**.</span>`
-        );
-    }
-};
-
-/**
- * Handles the 'Show My Day' button click.
- */
-const handleShowDailySchedule = () => {
-    const personName = document.getElementById('whoSelect2').value;
-    const week = document.getElementById('weekSelect2').value;
-    const day = document.getElementById('daySelect2').value;
-
-    const personSchedule = timetableData[personName];
-
-    if (!personSchedule || !personSchedule[week] || !personSchedule[week][day]) {
-        showCustomAlert("Missing Data", `Schedule data for ${personName}, ${week}, ${day} is missing. Please check Firestore.`);
-        return;
-    }
-
-    const lessons = personSchedule[week][day];
-    const colorClass = personSchedule.color || 'red';
-    const contentDiv = document.getElementById('modalScheduleContent');
-    contentDiv.innerHTML = ''; // Clear previous content
-
-    const table = document.createElement('table');
-    table.className = 'schedule-table';
-    table.innerHTML = `
-        <thead>
-            <tr>
-                <th>Period</th>
-                <th>Subject</th>
-            </tr>
-        </thead>
-        <tbody>
-        </tbody>
-    `;
-    const tbody = table.querySelector('tbody');
-
-    lessons.forEach((lesson, index) => {
-        const period = index + 1;
-        // Handle empty strings or nulls from data gracefully
-        const subject = (lesson && lesson.trim() !== '') ? lesson : 'Free Period';
-        
-        const row = document.createElement('tr');
-        // Apply class based on the person's color for styling
-        row.className = `schedule-row color-border-${colorClass}`;
-        row.innerHTML = `
-            <td class="period-col">P${period}</td>
-            <td class="lesson-col">${subject}</td>
-        `;
-        tbody.appendChild(row);
-    });
-
-    // Update modal header
-    document.getElementById('scheduleTitle').textContent = `${personName}'s Day: ${day} (${week})`;
-
-    // Insert the table and show the modal
-    contentDiv.appendChild(table);
-    document.getElementById('scheduleModalBack').style.display = 'flex'; // Use flex to center the modal
-};
-
-
-// --- Catchphrase Logic (Personal Data) ---
-
-/**
- * Updates the UI display for the random catchphrase.
- */
-const updateCatchphraseUI = () => {
-    const refreshTag = document.getElementById('refreshTag');
-    const catchphraseCount = currentCatchphrases.length;
-
-    if (catchphraseCount === 0) {
-        refreshTag.textContent = "Start by adding a catchphrase!";
-        return;
-    }
-    
-    // Pick a random phrase
-    const randomIndex = Math.floor(Math.random() * catchphraseCount);
-    refreshTag.textContent = currentCatchphrases[randomIndex];
-    
-    // Add a simple animation class for visual feedback
-    refreshTag.classList.remove('fade-in');
-    void refreshTag.offsetWidth; // Trigger reflow
-    refreshTag.classList.add('fade-in');
-};
-
-/**
- * Handles adding a new catchphrase to the user's list in Firestore.
- */
-const handleAddPhrase = async () => {
-    const input = document.getElementById('newPhraseInput');
-    const newPhrase = input.value.trim();
-
-    if (newPhrase === "") {
-        showCustomAlert("Hold up!", "Please enter a phrase before adding it.");
-        return;
-    }
-
-    if (!db || !userId) {
-        showCustomAlert("Error", "Authentication not complete. Cannot save phrase.");
-        return;
-    }
-
-    if (currentCatchphrases.includes(newPhrase)) {
-        showCustomAlert("Duplicate", "You've already saved that exact phrase!");
-        return;
-    }
-
-    const catchphraseDocRef = doc(db, `artifacts/${appId}/users/${userId}/catchphrases/list`);
-
-    try {
-        // Use arrayUnion to safely add the new phrase to the array
-        await setDoc(catchphraseDocRef, { 
-            phrases: arrayUnion(newPhrase) 
-        }, { merge: true });
-        
-        input.value = ''; // Clear input on success
-        showCustomAlert("Success", `Catchphrase "${newPhrase}" added!`);
-
-    } catch (e) {
-        console.error("Error adding catchphrase:", e);
-        showCustomAlert("Save Error", "Failed to save the phrase to your storage.");
-    }
-};
-
-
-// --- Dark Mode Logic ---
-
-const loadDarkModePreference = () => {
-    // Check if the user has a preference saved, or respects the system preference
-    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const storedPreference = localStorage.getItem('darkMode');
-    
-    let isDarkMode = false;
-    if (storedPreference !== null) {
-        isDarkMode = storedPreference === 'true';
-    } else if (prefersDark) {
-        isDarkMode = true;
-    }
-
-    if (isDarkMode) {
-        document.body.classList.add('dark-mode');
-    }
-};
-
-const toggleDarkMode = () => {
-    const isDarkMode = document.body.classList.toggle('dark-mode');
-    localStorage.setItem('darkMode', isDarkMode);
-};
-
-
-// --- Event Listeners and Execution ---
-
-/**
- * Sets up all necessary DOM event listeners.
- */
-const setupEventListeners = () => {
-    // Timetable Features
-    document.getElementById('findBtn').addEventListener('click', handleFindLesson);
-
-    // Catchphrase Features
-    document.getElementById('addPhraseBtn').addEventListener('click', handleAddPhrase);
-    document.getElementById('refreshTag').addEventListener('click', updateCatchphraseUI);
-
-    // Daily Schedule Feature
-    document.getElementById('whatBtn').addEventListener('click', handleShowDailySchedule);
-    document.getElementById('scheduleClose').addEventListener('click', () => {
-        document.getElementById('scheduleModalBack').style.display = 'none';
-    });
-
-    // Dark Mode Toggle
-    document.getElementById('darkModeToggle').addEventListener('click', toggleDarkMode);
-};
-
-// --- Execution ---
-
-window.onload = async () => {
-    loadDarkModePreference();
-    setupEventListeners();
-    await setupFirebase(); // Start the Firebase auth and data loading process
-};
-</script>
+<script type="module" src="script.js"></script>
 </body>
 </html>
