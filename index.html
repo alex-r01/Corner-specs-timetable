@@ -81,24 +81,26 @@
             position:relative;
         }
         
-        /* UPDATED TAG STYLES: Now positioned below the title and centered */
+        /* UPDATED TAG STYLES: Increased font size to match H1 and slightly adjusted vertical alignment */
         .tag {
-            display: inline-block; /* Allows padding/background to wrap content */
-            margin-top: 4px; /* Space below the H1 */
+            display: inline-block;
+            margin-top: 4px;
             
             color:#333333 !important;
             background:linear-gradient(90deg, var(--yellow-light), rgba(255,248,200,0.95));
-            padding: 4px 8px; /* Reduced padding */
-            border-radius: 8px; /* Smaller radius */
+            padding: 4px 8px;
+            border-radius: 8px;
             box-shadow: var(--soft-shadow);
             opacity:0;
-            animation: fadeIn 500ms ease forwards; /* New fade in animation */
-            font-weight: 600; /* Slightly lighter weight */
-            font-size: 11px; /* Smaller font size */
+            animation: fadeIn 500ms ease forwards;
+            font-weight: 600;
+            font-size: 15px; /* INCREASED FONT SIZE to make it bigger */
+            line-height: 1.2; /* Added line-height for consistent spacing */
             border: 1px solid rgba(0,0,0,0.1);
+            /* Reset animation timing */
+            animation-delay: 50ms; 
         }
         
-        /* New, simpler animation for the centered tag */
         @keyframes fadeIn{
             from { opacity:0; transform:translateY(5px); }
             to { opacity:1; transform:translateY(0); }
@@ -108,7 +110,8 @@
         #darkModeToggle {
             position: absolute;
             left: 10px;
-            top: 50%;
+            /* Adjusted top to be higher to center with the H1 element */
+            top: 25px; 
             transform: translateY(-50%);
             font-size: 22px;
             cursor: pointer;
@@ -227,12 +230,13 @@
     <div class="wrap">
         <div class="title card">
             <!-- Dark Mode Toggle is positioned absolutely relative to .title -->
+            <!-- We changed 'top: 50%' to 'top: 25px' in CSS to align it with the h1 text's center. -->
             <div id="darkModeToggle" role="button" aria-label="Toggle Dark Mode">☀️</div>
             
-            <!-- Main Title is now an H1 for better structure -->
+            <!-- Main Title is an H1 -->
             <h1 style="font-size:28px; margin: 0 0 4px 0; font-weight:700;">Fuckass Timetable</h1>
             
-            <!-- Catchphrase is now directly below the title -->
+            <!-- Catchphrase is directly below the title. Font size adjusted in CSS to match H1 better. -->
             <div id="randomTag" class="tag" aria-hidden="true"></div>
         </div>
 
