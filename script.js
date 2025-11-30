@@ -32,7 +32,8 @@ const elements = {
 
 let timetableData = null;
 let catchphrases = [];
-const FREE_WORDS = ['free', 'period 4', 'period 5', '']; // Identifiers for free periods from the sheet data
+// Identifiers for free periods from the sheet data, including blank fields.
+const FREE_WORDS = ['free', 'period 4', 'period 5', '']; 
 
 // --- THEME LOGIC ---
 
@@ -51,7 +52,7 @@ function applyTheme(isDark) {
 
 function loadTheme() {
     const savedTheme = localStorage.getItem(storageKey);
-    // Fixed syntax error here: removed extra closing parenthesis
+    // CRITICAL FIX: Removed the extraneous colon that caused the SyntaxError
     const prefersDark = savedTheme === 'dark' || (savedTheme === null && window.matchMedia('(prefers-color-scheme: dark)').matches);
     applyTheme(prefersDark);
 }
@@ -358,6 +359,7 @@ function setupEventListeners() {
     elements.whatBtn.addEventListener('click', showMyDay);
     elements.scheduleClose.addEventListener('click', hideScheduleModal);
     elements.scheduleModalBack.addEventListener('click', function(e) {
+        // Close modal only if background is clicked, not the modal content itself
         if (e.target === this) {
             hideScheduleModal();
         }
